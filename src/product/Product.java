@@ -36,7 +36,7 @@ public class Product {
 			List<String> test = jedis.scan("0").getResult();
 			List<List<String>> products = new ArrayList<>();
 			for(int j=0; j<test.size();j++) {
-				if(test.get(j).matches("product\\d*")) {
+				if(test.get(j).contains("product")) {
 					products.add(jedis.hmget(test.get(j), "asin", "price", "title", "imgUrl", "brand"));
 				}
 			}

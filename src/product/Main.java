@@ -37,7 +37,7 @@ public class Main {
             for(int j=0; j<test.size();j++) {
                 if(test.get(j).contains("product")) {
                     List<String> res = jedis.hmget(test.get(j), "asin", "price", "title", "imgUrl", "brand");
-                    Product p = new Product(res.get(0), res.get(1),res.get(2),res.get(3),res.get(4));
+                    Product p = new Product(test.get(j), res.get(0), res.get(1),res.get(2),res.get(3),res.get(4));
                     products.add(p);
                 }
             }

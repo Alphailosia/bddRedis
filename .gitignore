@@ -3,3 +3,5 @@
 .settings
 progBD.iml
 .idea
+bddRedis.iml
+out

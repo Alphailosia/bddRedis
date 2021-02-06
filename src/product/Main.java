@@ -6,9 +6,12 @@ import java.util.*;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    private Jedis jedis = new Jedis("localhost");
 
-        Jedis jedis = new Jedis("localhost");
+    public static void main(String[] args) throws IOException {
+        Main m = new Main();
+        Jedis jedis = m.jedis;
+
         jedis.flushAll();
         System.out.println("connection reussi");
         String lien =  System.getProperty("user.dir") + "/src/product/";
@@ -29,24 +32,6 @@ public class Main {
             System.out.println("price "+jedis.hmget("product"+i, "price"));
             System.out.println("imgUrl "+jedis.hmget("product"+i, "imgUrl"));
             System.out.println("brand "+jedis.hmget("product"+i, "brand"));
-
-
-            ///test get all #oskour
-            List<String> test = jedis.scan("0").getResult();
-            List<Product> products = new ArrayList<>();
-            for(int j=0; j<test.size();j++) {
-                if(test.get(j).contains("product")) {
-                    List<String> res = jedis.hmget(test.get(j), "asin", "price", "title", "imgUrl", "brand");
-                    Product p = new Product(test.get(j), res.get(0), res.get(1),res.get(2),res.get(3),res.get(4));
-                    products.add(p);
-                }
-            }
-            System.out.println("----------------------");
-            for(int j=0; j<products.size();j++) {
-                System.out.println(products.get(j));
-            }
-            System.out.println("----------------------");
-
 
         }
 
@@ -91,7 +76,27 @@ public class Main {
 
         }
 
+        m.getAllProducts();
 
+    }
+
+    public void getAllProducts() {
+        ///test get all #oskour
+        List<String> test = jedis.scan("0").getResult();
+        List<Product> products = new ArrayList<>();
+        for(int j=0; j<test.size();j++) {
+            if(test.get(j).contains("product")) {
+                List<String> res = jedis.hmget(test.get(j), "asin", "price", "title", "imgUrl", "brand");
+                Product p = new Product(test.get(j), res.get(0), res.get(1), res.get(2), res.get(3), res.get(4));
+                products.add(p);
+            }
+        }
+        System.out.println("\nAll products :");
+        System.out.println("----------------------");
+        for(int j=0; j<products.size();j++) {
+            System.out.println(products.get(j));
+        }
+        System.out.println("----------------------");
     }
 
     public static ArrayList<HashMap<String,String>> readFile(String file) throws IOException {

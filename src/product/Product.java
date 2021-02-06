@@ -11,11 +11,12 @@ public class Product {
 
 		Jedis jedis = new Jedis("localhost");
 		System.out.println("connection reussi");
+		String lien =  System.getProperty("user.dir") + "/src/product/";
 
 		// Product
 
 		// initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-		ArrayList<HashMap<String,String>> listUser = readFile("C:\\Users\\Alphailosia\\Documents\\Miage\\M1\\projetbdd\\bddRedis\\src\\product\\product.json");
+		ArrayList<HashMap<String,String>> listUser = readFile(lien + "product.json");
 
 		// boucle pour mettre dans la bdd et afficher les users
 		for(int i=0;i<listUser.size();i++) {
@@ -34,7 +35,7 @@ public class Product {
 		// Customer
 
 		// initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-		ArrayList<HashMap<String,String>> listCustomer = readFile("C:\\Users\\Alphailosia\\Documents\\Miage\\M1\\projetbdd\\bddRedis\\src\\product\\customer.json");
+		ArrayList<HashMap<String,String>> listCustomer = readFile(lien + "customer.json");
 		
 		System.out.println(listCustomer.size());
 		// boucle pour mettre dans la bdd et afficher les users
@@ -58,7 +59,7 @@ public class Product {
 		// FeedBack 
 
 		// initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-		ArrayList<HashMap<String,String>> listFeedBack = readFile("C:\\Users\\Alphailosia\\Documents\\Miage\\M1\\projetbdd\\bddRedis\\src\\product\\feedback.json");
+		ArrayList<HashMap<String,String>> listFeedBack = readFile(lien + "feedback.json");
 
 		// boucle pour mettre dans la bdd et afficher les users
 		for(int i=0;i<listFeedBack.size();i++) {

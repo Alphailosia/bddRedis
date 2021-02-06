@@ -1,6 +1,7 @@
 package product;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.ScanResult;
 
 import java.io.*;
 import java.util.*;
@@ -29,6 +30,22 @@ public class Product {
 			System.out.println("price "+jedis.hmget("product"+i, "price"));
 			System.out.println("imgUrl "+jedis.hmget("product"+i, "imgUrl"));
 			System.out.println("brand "+jedis.hmget("product"+i, "brand"));
+
+
+			///test get all #oskour
+			List<String> test = jedis.scan("0").getResult();
+			List<List<String>> products = new ArrayList<>();
+			for(int j=0; j<test.size();j++) {
+				if(test.get(j).matches("product\\d*")) {
+					products.add(jedis.hmget(test.get(j), "asin", "price", "title", "imgUrl", "brand"));
+				}
+			}
+			System.out.println("----------------------");
+			for(int j=0; j<products.size();j++) {
+				System.out.println(products.get(j));
+			}
+			System.out.println("----------------------");
+
 
 		}
 

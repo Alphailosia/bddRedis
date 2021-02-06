@@ -9,6 +9,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         Jedis jedis = new Jedis("localhost");
+        jedis.flushAll();
         System.out.println("connection reussi");
         String lien =  System.getProperty("user.dir") + "/src/product/";
 

@@ -11,6 +11,7 @@ public class Product {
 	public static void main(String[] args) throws IOException {
 
 		Jedis jedis = new Jedis("localhost");
+		jedis.flushAll();
 		System.out.println("connection reussi");
 		String lien =  System.getProperty("user.dir") + "/src/product/";
 
@@ -34,9 +35,10 @@ public class Product {
 
 			///test get all #oskour
 			List<String> test = jedis.scan("0").getResult();
+			System.out.println(test);
 			List<List<String>> products = new ArrayList<>();
 			for(int j=0; j<test.size();j++) {
-				if(test.get(j).matches("product\\d*")) {
+				if(test.get(j).contains("product")) {
 					products.add(jedis.hmget(test.get(j), "asin", "price", "title", "imgUrl", "brand"));
 				}
 			}
@@ -53,8 +55,7 @@ public class Product {
 
 		// initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
 		ArrayList<HashMap<String,String>> listCustomer = readFile(lien + "customer.json");
-		
-		System.out.println(listCustomer.size());
+
 		// boucle pour mettre dans la bdd et afficher les users
 		for(int i=0;i<listCustomer.size();i++) {
 			System.out.println("\nAjout du customer "+(i+1)+" \n");

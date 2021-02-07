@@ -1,20 +1,30 @@
 package product;
 
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.ScanParams;
+
 import java.io.*;
 import java.util.*;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class Main {
 
     private Jedis jedis = new Jedis("localhost");
+    private String lien = System.getProperty("user.dir") + "/src/product/";
 
     public static void main(String[] args) throws IOException {
         Main m = new Main();
         Jedis jedis = m.jedis;
-
+        String lien = m.lien;
         jedis.flushAll();
+
         System.out.println("connection reussi");
-        String lien =  System.getProperty("user.dir") + "/src/product/";
+
 
         // Product
 
@@ -77,17 +87,18 @@ public class Main {
         }
 
         m.getAllProducts();
-
+        m.importInvoiceXML();
+        m.getAllInvoices();
     }
 
     public void getAllProducts() {
-        ///test get all #oskour
-        List<String> test = jedis.scan("0").getResult();
+        ScanParams scanParams = new ScanParams().match("*").count(10);
+        List<String> results = jedis.scan("0", scanParams).getResult();
         List<Product> products = new ArrayList<>();
-        for(int j=0; j<test.size();j++) {
-            if(test.get(j).contains("product")) {
-                List<String> res = jedis.hmget(test.get(j), "asin", "price", "title", "imgUrl", "brand");
-                Product p = new Product(test.get(j), res.get(0), res.get(1), res.get(2), res.get(3), res.get(4));
+        for(int j=0; j<results.size();j++) {
+            if(results.get(j).contains("product")) {
+                List<String> res = jedis.hmget(results.get(j), "asin", "price", "title", "imgUrl", "brand");
+                Product p = new Product(results.get(j), res.get(0), res.get(1), res.get(2), res.get(3), res.get(4));
                 products.add(p);
             }
         }
@@ -131,5 +142,72 @@ public class Main {
         } finally {
             reader.close();
         }
+    }
+
+    public void importInvoiceXML() {
+        try {
+            File fXmlFile = new File(lien + "Invoice.xml");
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(fXmlFile);
+            doc.getDocumentElement().normalize();
+            NodeList nList = doc.getElementsByTagName("Invoice.xml");
+
+            for (int temp = 0; temp < nList.getLength(); temp++) {
+                Node nNode = nList.item(temp);
+
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element eElement = (Element) nNode;
+                    HashMap<String, String> params = new HashMap<>();
+
+                    String orderId = eElement.getElementsByTagName("OrderId").item(0).getTextContent();
+                    params.put("orderId", orderId);
+
+                    String personId = eElement.getElementsByTagName("PersonId").item(0).getTextContent();
+                    params.put("personId", personId);
+
+                    String orderDate = eElement.getElementsByTagName("OrderDate").item(0).getTextContent();
+                    params.put("orderDate", orderDate);
+
+                    String totalPrice = eElement.getElementsByTagName("TotalPrice").item(0).getTextContent();
+                    params.put("totalPrice", totalPrice);
+
+
+                    NodeList productsId = eElement.getElementsByTagName("productId");
+                    String products = "";
+                    for(int i=0; i<productsId.getLength(); i++) {
+                        if(products.length() != 0) products += ",";
+                        products += productsId.item(i).getTextContent();
+                    }
+
+                    params.put("products", products);
+                    jedis.hmset("invoice"+orderId, params);
+                }
+            }
+
+        } catch (IOException | ParserConfigurationException | SAXException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void getAllInvoices() {
+        ScanParams scanParams = new ScanParams().match("*").count(10);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        List<Invoice> invoices = new ArrayList<>();
+        for(int i=0; i<results.size();i++) {
+            if(results.get(i).contains("invoice")) {
+                List<String> res = jedis.hmget(results.get(i), "orderId", "personId", "orderDate", "totalPrice", "products");
+                List<String> products = Arrays.asList(res.get(4).split(","));
+                Invoice inv = new Invoice(res.get(0), res.get(1), res.get(2), res.get(3), products);
+                invoices.add(inv);
+            }
+        }
+        System.out.println("\nAll invoices (cap 10) :");
+        System.out.println("----------------------");
+        for(int j=0; j<invoices.size();j++) {
+            System.out.println(invoices.get(j));
+        }
+        System.out.println("----------------------");
     }
 }

@@ -173,7 +173,7 @@ public class Main {
                     params.put("totalPrice", totalPrice);
 
 
-                    NodeList productsId = eElement.getElementsByTagName("productId");
+                    NodeList productsId = eElement.getElementsByTagName("asin");
                     String products = "";
                     for(int i=0; i<productsId.getLength(); i++) {
                         if(products.length() != 0) products += ",";

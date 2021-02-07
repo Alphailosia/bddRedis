@@ -1,4 +1,4 @@
-package product;
+
 
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
@@ -15,7 +15,7 @@ import javax.xml.parsers.ParserConfigurationException;
 public class Main {
 
     private Jedis jedis = new Jedis("localhost");
-    private String lien = System.getProperty("user.dir") + "/src/product/";
+    private String lien = System.getProperty("user.dir") + "/src/data/";
 
     public static void main(String[] args) throws IOException {
         Main m = new Main();
@@ -24,90 +24,20 @@ public class Main {
         jedis.flushAll();
 
         System.out.println("connection reussi");
-
-
-        // Product
-
-        // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-        ArrayList<HashMap<String,String>> listUser = readFile(lien + "product.json");
-
-        // boucle pour mettre dans la bdd et afficher les users
-        for(int i=0;i<listUser.size();i++) {
-            System.out.println("\nAjout du product "+(i+1)+" \n");
-
-            jedis.hmset("product"+i,listUser.get(i) );
-
-            System.out.println("asin : "+jedis.hmget("product"+i, "asin"));
-            System.out.println("title : "+jedis.hmget("product"+i, "title"));
-            System.out.println("price "+jedis.hmget("product"+i, "price"));
-            System.out.println("imgUrl "+jedis.hmget("product"+i, "imgUrl"));
-            System.out.println("brand "+jedis.hmget("product"+i, "brand"));
-
-        }
-
-        // Customer
-
-        // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-        ArrayList<HashMap<String,String>> listCustomer = readFile(lien + "customer.json");
-
-        System.out.println(listCustomer.size());
-        // boucle pour mettre dans la bdd et afficher les users
-        for(int i=0;i<listCustomer.size();i++) {
-            System.out.println("\nAjout du customer "+(i+1)+" \n");
-
-            jedis.hmset("customer"+i,listCustomer.get(i) );
-
-            System.out.println("personId : "+jedis.hmget("customer"+i, "personId"));
-            System.out.println("firstName : "+jedis.hmget("customer"+i, "firstName"));
-            System.out.println("lastName "+jedis.hmget("customer"+i, "lastName"));
-            System.out.println("gender "+jedis.hmget("customer"+i, "gender"));
-            System.out.println("birthday "+jedis.hmget("customer"+i, "birthday"));
-            System.out.println("createDate "+jedis.hmget("customer"+i, "createDate"));
-            System.out.println("location "+jedis.hmget("customer"+i, "location"));
-            System.out.println("browserUsed "+jedis.hmget("customer"+i, "browserUsed"));
-            System.out.println("place "+jedis.hmget("customer"+i, "place"));
-
-        }
-
-        // FeedBack
-
-        // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-        ArrayList<HashMap<String,String>> listFeedBack = readFile(lien + "feedback.json");
-
-        // boucle pour mettre dans la bdd et afficher les users
-        for(int i=0;i<listFeedBack.size();i++) {
-            System.out.println("\nAjout du feedback "+(i+1)+" \n");
-
-            jedis.hmset("feedback"+i,listFeedBack.get(i) );
-
-            System.out.println("asin : "+jedis.hmget("feedback"+i, "asin"));
-            System.out.println("personId : "+jedis.hmget("feedback"+i, "personId"));
-            System.out.println("feedback "+jedis.hmget("feedback"+i, "feedback"));
-
-        }
-
-        m.getAllProducts();
+        
         m.importInvoiceXML();
         m.getAllInvoices();
-    }
+        
+        // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
+     	ArrayList<HashMap<String,String>> listUser = readCsv(lien + "product/Product.csv",",");
+     	
+     	for(int i=0;i<listUser.size();i++) {
 
-    public void getAllProducts() {
-        ScanParams scanParams = new ScanParams().match("*").count(10);
-        List<String> results = jedis.scan("0", scanParams).getResult();
-        List<Product> products = new ArrayList<>();
-        for(int j=0; j<results.size();j++) {
-            if(results.get(j).contains("product")) {
-                List<String> res = jedis.hmget(results.get(j), "asin", "price", "title", "imgUrl", "brand");
-                Product p = new Product(results.get(j), res.get(0), res.get(1), res.get(2), res.get(3), res.get(4));
-                products.add(p);
-            }
-        }
-        System.out.println("\nAll products :");
-        System.out.println("----------------------");
-        for(int j=0; j<products.size();j++) {
-            System.out.println(products.get(j));
-        }
-        System.out.println("----------------------");
+			jedis.hmset("product "+listUser.get(i).get("asin"),listUser.get(i) );
+
+		}
+     	
+     	System.out.println("ajout des produits");
     }
 
     public static ArrayList<HashMap<String,String>> readFile(String file) throws IOException {
@@ -146,7 +76,7 @@ public class Main {
 
     public void importInvoiceXML() {
         try {
-            File fXmlFile = new File(lien + "Invoice.xml");
+            File fXmlFile = new File(lien + "invoice/Invoice.xml");
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(fXmlFile);
@@ -210,4 +140,58 @@ public class Main {
         }
         System.out.println("----------------------");
     }
+    
+    public static ArrayList<HashMap<String,String>> readCsv(String file, String splitter) throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader (file));
+		ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
+		String line = null;
+		StringBuilder stringBuilder = new StringBuilder();
+		String ls = System.getProperty("line.separator");
+		HashMap<String, String> user = new HashMap<String,String>();
+		ArrayList<String> key = new ArrayList<>();
+		int count = 0;
+		try {
+			while((line = reader.readLine()) != null) {
+				if (count==0){
+					for(String s : line.split(splitter)) {
+						key.add(s);
+					}
+					count++;
+				}
+				else{
+					user=new HashMap<String,String>();	
+
+					String[] oui = traitementProduit(line,splitter,key.size());
+					for(int i=0;i<oui.length;i++) {
+						user.put(key.get(i), oui[i]);
+					}
+					
+					result.add(user);
+				}
+			}
+			return result;
+		} finally {
+			reader.close();
+		}
+	}
+
+	private static String[] traitementProduit(String line,String split, int size) {
+		if(line.split(split).length==size) {
+			return line.split(split);
+		}
+		else {
+			String[] traitement = new String[size];
+			String[] tabAtraiter = line.split(split);
+			
+			traitement[0] = tabAtraiter[0];
+			traitement[size-1] = tabAtraiter[tabAtraiter.length-1];
+			traitement[size-2] = tabAtraiter[tabAtraiter.length-2];
+			String s = "";
+			for(int i=1;i<tabAtraiter.length-2;i++) {
+				s+=tabAtraiter[i];
+			}
+			traitement[1]=s;
+			return traitement;
+		}
+	}
 }

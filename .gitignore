@@ -5,4 +5,5 @@ progBD.iml
 .idea
 bddRedis.iml
 out
-src/product/Invoice.xml
+src/data
+bin

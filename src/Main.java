@@ -25,7 +25,7 @@ public class Main {
 
         System.out.println("connection reussi");
         
-        m.importInvoiceXML();
+       /* m.importInvoiceXML();
         m.getAllInvoices();
         
         // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
@@ -168,7 +168,20 @@ public class Main {
 
         }
 
-        System.out.println("ajout des post_hasTag_tag");
+        System.out.println("ajout des post_hasTag_tag");*/
+        
+        
+        // ajout des commande
+     	
+        ArrayList<HashMap<String,String>> listOskour = readJson(lien+"order/Order.json");
+        
+        for(int i=0;i<listOskour.size();i++) {
+
+            jedis.hmset("post_hasTag_tag_"+listOskour.get(i).get("Post.id"),listOskour.get(i) );
+
+        }
+        
+        System.out.println("ajout des commandes");
 
     }
 
@@ -361,5 +374,84 @@ public class Main {
 			reader.close();
 		}
 	}
+	
+	private static ArrayList<HashMap<String,String>> readJson(String file) throws IOException{
+		BufferedReader reader = new BufferedReader(new FileReader (file));
+		ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
+		String line = null;
+		StringBuilder stringBuilder = new StringBuilder();
+		String ls = System.getProperty("line.separator");
+		
+		try {
+            while((line = reader.readLine()) != null) {
+            	line = line.replaceAll("\\[Watch\\]","");
+                line = line.replaceAll("\\[2014 MODEL\\]","");
+            	
+                int indexTab = line.indexOf("[");
+                int finTab = line.indexOf("]");
+                
+                String tabProduct = replaceComma(line.substring(indexTab-12, finTab+1)); // le tableau des produits commander
+                System.out.println(line);
+                line = line.substring(0, indexTab-14)+line.substring(finTab+1);
+                
+                // traitement du reste de la ligne 
+                line = line.substring(1,line.length()-1);
+                System.out.println(line);
+                String[] resteLigne = line.split(",");
+                HashMap<String,String> hmOrder = new HashMap<String,String>();
+                
+                for(int i=0;i<resteLigne.length;i++) {
+                	String[] ui = resteLigne[i].split(":");
+                	hmOrder.put(ui[0].substring(1,ui[0].length()-1), ui[1]);
+                }
+                
+                // traitement du tableau de produits
+                
+                String key = tabProduct.substring(1, 10);
+                String[] produits = tabProduct.substring(12).substring(1,tabProduct.substring(12).length()-1).split(",");
+                ArrayList<HashMap<String,String>> products = new ArrayList<>();
+                
+                for(int i=0;i<produits.length;i++) {
+                	
+                	String[] s = produits[i].split(",");
+                	HashMap<String,String> hmp = new HashMap<>();
+                	
+                	for(int j=0;j<s.length;j++) {
+                		String[] jpp = s[j].split(":");
+                		hmp.put(jpp[0].substring(1,jpp[0].length()-1),jpp[1]);
+                	}
+                	
+                	products.add(hmp);
+                	
+                }
+                
+                hmOrder.put(key, products.toString());
+                result.add(hmOrder);
+            }
+            return result;
+        } finally {
+            reader.close();
+        }
+	}
+
+	public static String replaceComma(String toParse){
+        String result ="";
+        String rpl1 = "MMMM"; //stand for ","
+        String rpl2 = "NNNN"; //stand for ,"
+        String rpl3 = "OOOO"; //stand for },
+
+        result = toParse.replaceAll("\",\"",rpl1);
+        result = result.replaceAll(",\"",rpl2);
+        result = result.replaceAll("},",rpl3);
+        result = result.replaceAll(",","");
+
+        result = result.replaceAll(rpl3,"},");
+        result = result.replaceAll(rpl2,",\"");
+        result = result.replaceAll(rpl1,"\",\"");
+        
+
+        return result;
+    }
+	
 	
 }

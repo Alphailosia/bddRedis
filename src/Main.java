@@ -78,6 +78,71 @@ public class Main {
         }
 
         System.out.println("ajout des vendor");
+
+
+        // ajout des person_hasInterest_tag
+
+        listUser = readCsv(lien + "socialNetwork/person_hasInterest_tag_0_0.csv","\\|");
+
+        for(int i=0;i<listUser.size();i++) {
+
+            jedis.hmset("person_hasInterest_tag_"+listUser.get(i).get("Person.id"),listUser.get(i) );
+
+        }
+
+        System.out.println("ajout des person_hasInterest_tag");
+
+
+        // ajout des person_knows_person
+
+        listUser = readCsv(lien + "socialNetwork/person_knows_person_0_0.csv","\\|");
+
+        for(int i=0;i<listUser.size();i++) {
+
+            jedis.hmset("person_knows_person_"+listUser.get(i).get("Person.id"),listUser.get(i) );
+
+        }
+
+        System.out.println("ajout des person_knows_person");
+
+
+        // ajout des post
+
+        listUser = readCsv(lien + "socialNetwork/post_0_0.csv","\\|");
+
+        for(int i=0;i<listUser.size();i++) {
+
+            jedis.hmset("post_"+listUser.get(i).get("id"),listUser.get(i) );
+
+        }
+
+        System.out.println("ajout des post");
+
+
+        // ajout des post_hasCreator_person
+
+        listUser = readCsv(lien + "socialNetwork/post_hasCreator_person_0_0.csv","\\|");
+
+        for(int i=0;i<listUser.size();i++) {
+
+            jedis.hmset("post_hasCreator_person_"+listUser.get(i).get("Post.id"),listUser.get(i) );
+
+        }
+
+        System.out.println("ajout des post_hasCreator_person");
+
+
+        // ajout des post_hasTag_tag
+
+        listUser = readCsv(lien + "socialNetwork/post_hasTag_tag_0_0.csv","\\|");
+
+        for(int i=0;i<listUser.size();i++) {
+
+            jedis.hmset("post_hasTag_tag_"+listUser.get(i).get("Post.id"),listUser.get(i) );
+
+        }
+
+        System.out.println("ajout des post_hasTag_tag");
         
     }
 

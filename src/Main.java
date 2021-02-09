@@ -38,9 +38,35 @@ public class Main {
 		}
      	
      	System.out.println("ajout des produits");
-     	
-     	
-     	
+
+
+        // ajout des marques
+
+        BufferedReader reader = new BufferedReader(new FileReader (lien+"product/BrandByProduct.csv"));
+        String line = null;
+        StringBuilder stringBuilder = new StringBuilder();
+        String ls = System.getProperty("line.separator");
+        try {
+            while((line = reader.readLine()) != null) {
+                String[] tab = line.split(",");
+                System.out.println(tab[1]);
+                List<String> marque = jedis.hmget("product_"+tab[1], "asin","title", "price", "imgUrl");
+                marque.add(tab[0]);
+                HashMap<String, String> hm = new HashMap<>();
+                hm.put("asin", marque.get(0)+"");
+                hm.put("title", marque.get(1)+"");
+                hm.put("price", marque.get(2)+"");
+                hm.put("imgUrl", marque.get(3)+"");
+                hm.put("brand", marque.get(4)+"");
+                jedis.hmset("product_"+tab[1], hm);
+            }
+        } finally {
+            reader.close();
+        }
+
+        System.out.println("ajout des marques dans les produits");
+
+        
         // ajout des customers
      	
         listUser = readCsv(lien + "customer/person_0_0.csv","\\|");
@@ -143,7 +169,7 @@ public class Main {
         }
 
         System.out.println("ajout des post_hasTag_tag");
-        
+
     }
 
     public static ArrayList<HashMap<String,String>> readFile(String file) throws IOException {

@@ -29,15 +29,44 @@ public class Main {
         m.getAllInvoices();
         
         // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-     	ArrayList<HashMap<String,String>> listUser = readCsv(lien + "product/Product.csv",",");
+     	ArrayList<HashMap<String,String>> listUser = readCsvProduit(lien + "product/Product.csv",",");
      	
      	for(int i=0;i<listUser.size();i++) {
 
-			jedis.hmset("product "+listUser.get(i).get("asin"),listUser.get(i) );
+			jedis.hmset("product_"+listUser.get(i).get("asin"),listUser.get(i) );
 
 		}
      	
      	System.out.println("ajout des produits");
+     	
+     	
+     	
+        // ajout des customers
+     	
+        listUser = readCsv(lien + "customer/person_0_0.csv","\\|");
+     	
+     	for(int i=0;i<listUser.size();i++) {
+
+			jedis.hmset("customer_"+listUser.get(i).get("id"),listUser.get(i) );
+
+		}
+     	
+     	System.out.println("ajout des customers");
+     	
+     	
+     	// ajout des feedback
+     	
+        listUser = readCsv(lien + "feedback/Feedback.csv","\\|");
+     	
+     	for(int i=0;i<listUser.size();i++) {
+
+			jedis.hmset("feedback_"+listUser.get(i).get("asin")+"_"+listUser.get(i).get("id"),listUser.get(i) );
+
+		}
+     	
+     	System.out.println("ajout des feedback");
+        
+        
     }
 
     public static ArrayList<HashMap<String,String>> readFile(String file) throws IOException {
@@ -141,7 +170,7 @@ public class Main {
         System.out.println("----------------------");
     }
     
-    public static ArrayList<HashMap<String,String>> readCsv(String file, String splitter) throws IOException {
+    public static ArrayList<HashMap<String,String>> readCsvProduit(String file, String splitter) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader (file));
 		ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
 		String line = null;
@@ -194,4 +223,40 @@ public class Main {
 			return traitement;
 		}
 	}
+	
+	private static ArrayList<HashMap<String,String>> readCsv(String file, String splitter) throws IOException{
+		
+		BufferedReader reader = new BufferedReader(new FileReader (file));
+		ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
+		String line = null;
+		StringBuilder stringBuilder = new StringBuilder();
+		String ls = System.getProperty("line.separator");
+		HashMap<String, String> user = new HashMap<String,String>();
+		ArrayList<String> key = new ArrayList<>();
+		int count = 0;
+		try {
+			while((line = reader.readLine()) != null) {
+				if (count==0){
+					for(String s : line.split(splitter)) {
+						key.add(s);
+					}
+					count++;
+				}
+				else{
+					user=new HashMap<String,String>();	
+
+					String[] oui = line.split(splitter);
+					for(int i=0;i<oui.length;i++) {
+						user.put(key.get(i), oui[i]);
+					}
+					
+					result.add(user);
+				}
+			}
+			return result;
+		} finally {
+			reader.close();
+		}
+	}
+	
 }

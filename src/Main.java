@@ -65,7 +65,19 @@ public class Main {
 		}
      	
      	System.out.println("ajout des feedback");
-        
+
+
+     	// ajout des vendor
+
+        listUser = readCsv(lien + "vendor/Vendor.csv",",");
+
+        for(int i=0;i<listUser.size();i++) {
+
+            jedis.hmset("vendor_"+listUser.get(i).get("Vendor"),listUser.get(i) );
+
+        }
+
+        System.out.println("ajout des vendor");
         
     }
 

@@ -25,7 +25,7 @@ public class Main {
 
         System.out.println("connection reussi");
         
-       /* m.importInvoiceXML();
+        m.importInvoiceXML();
         m.getAllInvoices();
         
         // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
@@ -49,7 +49,6 @@ public class Main {
         try {
             while((line = reader.readLine()) != null) {
                 String[] tab = line.split(",");
-                System.out.println(tab[1]);
                 List<String> marque = jedis.hmget("product_"+tab[1], "asin","title", "price", "imgUrl");
                 marque.add(tab[0]);
                 HashMap<String, String> hm = new HashMap<>();
@@ -168,7 +167,7 @@ public class Main {
 
         }
 
-        System.out.println("ajout des post_hasTag_tag");*/
+        System.out.println("ajout des post_hasTag_tag");
         
         
         // ajout des commande
@@ -335,7 +334,7 @@ public class Main {
 			for(int i=1;i<tabAtraiter.length-2;i++) {
 				s+=tabAtraiter[i];
 			}
-			traitement[1]=s;
+			traitement[1]=replaceComma(s);
 			return traitement;
 		}
 	}
@@ -391,12 +390,10 @@ public class Main {
                 int finTab = line.indexOf("]");
                 
                 String tabProduct = replaceComma(line.substring(indexTab-12, finTab+1)); // le tableau des produits commander
-                System.out.println(line);
                 line = line.substring(0, indexTab-14)+line.substring(finTab+1);
                 
                 // traitement du reste de la ligne 
                 line = line.substring(1,line.length()-1);
-                System.out.println(line);
                 String[] resteLigne = line.split(",");
                 HashMap<String,String> hmOrder = new HashMap<String,String>();
                 
@@ -452,6 +449,5 @@ public class Main {
 
         return result;
     }
-	
-	
+		
 }

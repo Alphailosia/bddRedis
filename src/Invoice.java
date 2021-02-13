@@ -24,7 +24,7 @@ public class Invoice {
                 ", personId='" + personId + '\'' +
                 ", orderDate='" + orderDate + '\'' +
                 ", totalPrice='" + totalPrice + '\'' +
-                ", products=" + products +
+                ", products=" + products + '\'' +
                 '}';
     }
 }

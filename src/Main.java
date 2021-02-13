@@ -224,6 +224,13 @@ public class Main {
         ///Suppression d'un order
         o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");
 
+
+        ///Ajout d'un vendor
+        Vendor v = new Vendor();
+        v.ajoutVendor(jedis, "Nomas", "South_Korea", "Sports");
+
+        ///Suppression d'un vendor
+        v.deleteVendor(jedis, "Nomas");
     }
 
 

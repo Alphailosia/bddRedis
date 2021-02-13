@@ -42,7 +42,6 @@ public class Order {
 		hm.put("totalPrice", strings[3]);
 		hm.put("orderLine", strings[4]);
 		jedis.hmset("order_"+strings[0],hm);
-		System.out.println(jedis.hmget("order_016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "totalPrice"));
 		System.out.println("order ajouté");
 	}
 

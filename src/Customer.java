@@ -1,3 +1,6 @@
+import redis.clients.jedis.Jedis;
+
+import java.util.HashMap;
 import java.util.List;
 
 public class Customer {
@@ -24,6 +27,10 @@ public class Customer {
         this.place = place;
     }
 
+    public Customer() {
+
+    }
+
     @Override
     public String toString() {
         return "Customer{" + "\n" +
@@ -38,4 +45,26 @@ public class Customer {
                 "\tplace='" + place + '\'' + "\n" +
                 '}';
     }
+
+    public static void ajoutCustomer(Jedis jedis, String ...strings ) {
+        jedis = new Jedis("localhost");
+        HashMap<String,String> hm = new HashMap<>();
+        hm.put("id", strings[0]);
+        hm.put("firstName", strings[1]);
+        hm.put("lastName", strings[2]);
+        hm.put("gender", strings[3]);
+        hm.put("birthday", strings[4]);
+        hm.put("creationDate", strings[5]);
+        hm.put("locationIP", strings[6]);
+        hm.put("browserUsed", strings[7]);
+        hm.put("place", strings[8]);
+        jedis.hmset("customer_"+strings[0],hm);
+        System.out.println("customer ajouté");
+    }
+
+    public static void deleteCustomer(Jedis jedis, String id) {
+        jedis.del("customer_"+id);
+        System.out.println("customer supprimé");
+    }
+
 }

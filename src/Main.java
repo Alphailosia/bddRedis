@@ -235,8 +235,15 @@ public class Main {
         ///Suppression d'un vendor
         v.deleteVendor(jedis, "Nomas");
 
+
+        ///Ajout d'un customer
+        Customer c = new Customer();
+        c.ajoutCustomer(jedis, "2199025266270", "Mimi", "Cheh", "female", "1989-01-18", "2010-04-06T22:43:26.134+0000","27.129.140.209", "Chrome", "421");
+
+        ///Suppression d'un customer
+        c.deleteCustomer(jedis, "2199025266270");
+*/
         
- */
     }
 
 

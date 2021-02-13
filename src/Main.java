@@ -28,10 +28,10 @@ public class Main {
 
         System.out.println("connexion reussi");
 
-        //m.query1("19791209300458");
-        //m.query1("4145");
+        m.query1("19791209300458");
+        m.query1("4145");
 
-        //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
+        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
 
         m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
 
@@ -625,6 +625,7 @@ public class Main {
     }
 
     public void query2(String idProduct, LocalDate d1, LocalDate d2) {
+        System.out.println("Query 2 (ID product: "+idProduct+"):");
 
         List<String> personBougthIt = new ArrayList<>();
         List<Invoice> invoices = getAllInvoices();
@@ -636,15 +637,19 @@ public class Main {
             }
         }
 
-        System.out.println("Persons who bought the product ("+idProduct+"):");
+        System.out.println("Persons who bought the product ("+idProduct+") between "+d1+" and "+d2+":");
         for(String personId : personBougthIt) {
             List<String> cust = jedis.hmget("customer_" + personId, "firstName", "lastName");
             System.out.println(cust.get(0) + " " + cust.get(1));
         }
 
+        System.out.println("\nEND query 2");
+        System.out.println("--------------------\n\n");
     }
 
     public void query3(String idProduct, LocalDate d1, LocalDate d2) {
+        System.out.println("Query 3 (ID product: "+idProduct+"):");
+
         ScanParams scanParams = new ScanParams().match("*").count(100000);
         List<String> results = jedis.scan("0", scanParams).getResult();
 
@@ -666,6 +671,9 @@ public class Main {
                 }
             }
         }
+
+        System.out.println("\nEND query 3");
+        System.out.println("--------------------\n\n");
     }
 
     public boolean lastMonth(String date) {

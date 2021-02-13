@@ -20,7 +20,7 @@ public class Feedback {
 
 	@Override
 	public String toString() {
-		return "Product{" +
+		return "Feedback{" +
 				"asin='" + asin + '\'' +
 				", id='" + id + '\'' +
 				", feedback='" + feedback + '\'' +

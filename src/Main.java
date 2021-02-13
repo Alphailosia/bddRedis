@@ -205,7 +205,16 @@ public class Main {
         f.ajoutFeedback(jedis, "B005FUKW6M", "17592186053220", "'5.0,Finally found a good dart cabinet without some crap logo on the front, or some fake antiquated dart pub artwork!random words:reccoreckonrclameroadworkrootiragglerestamprussellrhombus'");
 
         ///Suppression d'un feedback
-        f.deleteFeedback(jedis, "B000003NUS_17592186053220");
+        f.deleteFeedback(jedis, "B005FUKW6M_17592186053220");
+
+
+        ///Ajout d'un post
+        Post po = new Post();
+        po.ajoutPost(jedis, "1236950581248", "", "2011-09-15T00:45:16.684+0000", "192.101.113.232", "Internet Explorer", "uz", "bout Armasight Spark CORE Multi-Purpose Night Vision Monocular, # 62 on October 8, 2007, and his career-high doub", "95");
+
+        ///Suppression d'un post
+        po.deletePost(jedis, "1236950581248");
+
     }
 
 

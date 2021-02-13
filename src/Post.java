@@ -25,37 +25,42 @@ public class Post {
 		this.content = content;
 		this.length = length;
 	}
-    
+
+	public Post(){
+
+	}
     
 	@Override
     public String toString() {
-        return "Invoice{" +
-                "orderId='" + id + '\'' +
-                ", personId='" + imageFile + '\'' +
-                ", orderDate='" + creationDate + '\'' +
-                ", totalPrice='" + locationIP + '\'' +
-                ", products=" + browserUsed + '\'' +
-                ", products=" + language + '\'' +
-                ", products=" + content + '\'' +
+        return "Post{" +
+                "id='" + id + '\'' +
+                ", imageFile='" + imageFile + '\'' +
+                ", creationDate='" + creationDate + '\'' +
+                ", locationIP='" + locationIP + '\'' +
+                ", browserUsed=" + browserUsed + '\'' +
+                ", language=" + language + '\'' +
+                ", content=" + content + '\'' +
+				", length=" + length + '\'' +
                 '}';
     }
 
-	/*public static void ajoutProduct(Jedis jedis, String ...strings ) {
+	public static void ajoutPost(Jedis jedis, String ...strings ) {
 		jedis = new Jedis("localhost");
 		HashMap<String,String> hm = new HashMap<>();
-		hm.put("asin", strings[0]);
-		hm.put("title", strings[1]);
-		hm.put("price", strings[2]);
-		hm.put("imgUrl", strings[3]);
-		hm.put("brand", strings[4]);
-		jedis.hmset("product_"+strings[0],hm);
-		System.out.println(jedis.hmget("product_B000003NUS", "price"));
-		System.out.println("produit ajouté");
+		hm.put("id", strings[0]);
+		hm.put("imageFile", strings[1]);
+		hm.put("creationDate", strings[2]);
+		hm.put("locationIP", strings[3]);
+		hm.put("browserUsed", strings[4]);
+		hm.put("language", strings[5]);
+		hm.put("content", strings[6]);
+		hm.put("length", strings[7]);
+		jedis.hmset("post_"+strings[0],hm);
+		System.out.println("post ajouté");
 	}
 
-	public static void deleteProduct(Jedis jedis, String id) {
-		jedis.del("product_"+id);
-		System.out.println(jedis.get("product_"+id));
-		System.out.println("produit supprimé");
-	}*/
+	public static void deletePost(Jedis jedis, String id) {
+		jedis.del("post_"+id);
+		System.out.println("post supprimé");
+	}
 }

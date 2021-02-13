@@ -28,8 +28,8 @@ public class Main {
 
         System.out.println("connexion reussi");
 
-        m.query1("19791209300458");
-        m.query1("4145");
+       /* m.query1("19791209300458");
+        m.query1("4145");*/
 
         m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
 
@@ -190,7 +190,7 @@ public class Main {
         System.out.println("ajout des post_hasTag_tag");
         
         
-        // ajout des commande
+        // ajout des commandes
 
         ArrayList<HashMap<String,String>> listOskour = readJson(lien+"order/Order.json");
         
@@ -213,17 +213,18 @@ public class Main {
         ///Suppression d'un produit
         p.deleteProduct(jedis, "B000003NUS");
 
-
+*/
         ///Ajout d'un feedback
         Feedback f = new Feedback();
         f.ajoutFeedback(jedis, "B005FUKW6M", "17592186053220", "'5.0,Finally found a good dart cabinet without some crap logo on the front, or some fake antiquated dart pub artwork!random words:reccoreckonrclameroadworkrootiragglerestamprussellrhombus'");
 
         ///Modification d'un feedback
+        f.updateFeedback(jedis, "B005FUKW6M_17592186053220", "feedback", "'6.0,Finally found a good dart cabinet'");
 
         ///Suppression d'un feedback
         f.deleteFeedback(jedis, "B005FUKW6M_17592186053220");
 
-
+/*
         ///Ajout d'un post
         Post po = new Post();
         po.ajoutPost(jedis, "1236950581248", "", "2011-09-15T00:45:16.684+0000", "192.101.113.232", "Internet Explorer", "uz", "bout Armasight Spark CORE Multi-Purpose Night Vision Monocular, # 62 on October 8, 2007, and his career-high doub", "95");
@@ -552,7 +553,7 @@ public class Main {
         return posts;
     }
 
-    public void query1(String idCustomer) {
+    /*public void query1(String idCustomer) {
         System.out.println("Query 1 (ID Customer: "+idCustomer+"):");
 
         //find profile
@@ -634,7 +635,7 @@ public class Main {
         System.out.println("\nEND query 1");
         System.out.println("--------------------\n\n");
     }
-
+*/
     public void query2(String idProduct, LocalDate d1, LocalDate d2) {
         System.out.println("Query 2 (ID product: "+idProduct+"):");
 

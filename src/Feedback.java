@@ -1,6 +1,7 @@
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Feedback {
 	
@@ -42,4 +43,11 @@ public class Feedback {
 		System.out.println("feedback supprimé");
 	}
 
+	public static void updateFeedback(Jedis jedis,String id, String key, String value) {
+		Map<String, String> m = jedis.hgetAll("feedback_"+id);
+		m.put(key, value);
+		jedis.hmset("feedback_"+id, m);
+		System.out.println("feedback modifié");
+	}
+	
 }

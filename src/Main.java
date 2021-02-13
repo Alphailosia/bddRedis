@@ -31,7 +31,9 @@ public class Main {
         //m.query1("19791209300458");
         //m.query1("4145");
 
-        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
+        //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
+
+        m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
 
 
 /*
@@ -258,7 +260,6 @@ public class Main {
 
 
     }
-
 
     public void importInvoiceXML() {
         try {
@@ -540,7 +541,6 @@ public class Main {
         return posts;
     }
 
-
     public void query1(String idCustomer) {
         System.out.println("Query 1 (ID Customer: "+idCustomer+"):");
 
@@ -642,6 +642,30 @@ public class Main {
             System.out.println(cust.get(0) + " " + cust.get(1));
         }
 
+    }
+
+    public void query3(String idProduct, LocalDate d1, LocalDate d2) {
+        ScanParams scanParams = new ScanParams().match("*").count(100000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+
+        System.out.println("Comments with bad sentiments of the product ("+idProduct+") :");
+        for(int i=0; i<results.size();i++) {
+            if(results.get(i).contains("feedback_"+idProduct)) {
+                List<String> res = jedis.hmget(results.get(i), "asin", "id", "feedback");
+                Feedback f = new Feedback(res.get(0), res.get(1), res.get(2));
+                int note;
+                if(f.feedback.substring(1, 2).equals("'")) {
+                    note = Integer.parseInt(f.feedback.substring(2, 3));
+                } else {
+                    note = Integer.parseInt(f.feedback.substring(1, 2));
+                }
+                if(note < 3) {
+                    int pos = f.feedback.indexOf(",");
+                    System.out.print("Note: "+ note+"/5, ");
+                    System.out.println("feedback: "+ f.feedback.substring(pos+1, f.feedback.length()));
+                }
+            }
+        }
     }
 
     public boolean lastMonth(String date) {

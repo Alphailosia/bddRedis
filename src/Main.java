@@ -185,7 +185,7 @@ public class Main {
         
         for(int i=0;i<listOskour.size();i++) {
 
-            jedis.hmset("post_hasTag_tag_"+listOskour.get(i).get("Post.id"),listOskour.get(i) );
+            jedis.hmset("order_"+listOskour.get(i).get("OrderId"),listOskour.get(i) );
 
         }
         
@@ -215,6 +215,14 @@ public class Main {
 
         ///Suppression d'un post
         po.deletePost(jedis, "1236950581248");
+
+
+        ///Ajout d'un order
+        Order o = new Order();
+        o.ajoutOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "10995136278715", "2018-09-22", "133.53", "La liste des produits");
+
+        ///Suppression d'un order
+        o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");
 
     }
 

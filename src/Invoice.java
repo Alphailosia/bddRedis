@@ -7,9 +7,9 @@ public class Invoice {
     public String personId;
     public String orderDate;
     public String totalPrice;
-    public List<String> products;
+    public List<Product> products;
 
-    public Invoice(String orderId, String personId, String orderDate, String totalPrice, List<String> products) {
+    public Invoice(String orderId, String personId, String orderDate, String totalPrice, List<Product> products) {
         this.orderId = orderId;
         this.personId = personId;
         this.orderDate = orderDate;

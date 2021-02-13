@@ -27,8 +27,10 @@ public class Main {
         //jedis.flushAll();
 
         System.out.println("connexion reussi");
-
         m.query1("19791209300458");
+        m.query1("4145");
+
+
 /*
         // ajout des invoices
         m.importInvoiceXML();
@@ -93,8 +95,8 @@ public class Main {
      	
 
      	// ajout des feedback
-     	
-        listUser = readCsv(lien + "feedback/Feedback.csv","\\|");
+
+        listUser = readCsvFeedback(lien + "feedback/Feedback.csv","\\|");
      	
      	for(int i=0;i<listUser.size();i++) {
 
@@ -184,7 +186,7 @@ public class Main {
         
         
         // ajout des commande
-     	
+
         ArrayList<HashMap<String,String>> listOskour = readJson(lien+"order/Order.json");
         
         for(int i=0;i<listOskour.size();i++) {
@@ -192,7 +194,7 @@ public class Main {
             jedis.hmset("order_"+listOskour.get(i).get("OrderId"),listOskour.get(i) );
 
         }
-        
+
         System.out.println("ajout des commandes");
 
 */
@@ -280,12 +282,16 @@ public class Main {
                     String totalPrice = eElement.getElementsByTagName("TotalPrice").item(0).getTextContent();
                     params.put("totalPrice", totalPrice);
 
-
-                    NodeList productsId = eElement.getElementsByTagName("asin");
+                    NodeList productsId = eElement.getElementsByTagName("Orderline");
                     String products = "";
                     for(int i=0; i<productsId.getLength(); i++) {
-                        if(products.length() != 0) products += ",";
-                        products += productsId.item(i).getTextContent();
+                        if(products.length() != 0) products += "~é";
+                        String produits = productsId.item(i).getTextContent();
+                        produits = produits.replaceFirst("            ", "");
+                        produits = produits.replaceAll("\n", "");
+                        produits = produits.replaceAll("            ", "~#");
+                        produits = produits.replaceFirst("        ", "");
+                        products += produits;
                     }
 
                     params.put("products", products);
@@ -306,8 +312,13 @@ public class Main {
         for(int i=0; i<results.size();i++) {
             if(results.get(i).contains("invoice")) {
                 List<String> res = jedis.hmget(results.get(i), "orderId", "personId", "orderDate", "totalPrice", "products");
-                List<String> products = Arrays.asList(res.get(4).split(","));
-                Invoice inv = new Invoice(res.get(0), res.get(1), res.get(2), res.get(3), products);
+                List<String> products = Arrays.asList(res.get(4).split("~é"));
+                List<Product> produits = new ArrayList<>();
+                for(int j=0; j<products.size(); j++) {
+                    List<String> p = Arrays.asList(products.get(j).split("~#"));
+                    produits.add(new Product(p.get(1), p.get(3), p.get(2), "", p.get(4)));
+                }
+                Invoice inv = new Invoice(res.get(0), res.get(1), res.get(2), res.get(3), produits);
                 invoices.add(inv);
             }
         }
@@ -525,7 +536,7 @@ public class Main {
 
 
     public void query1(String idCustomer) {
-        System.out.println("Query 1:");
+        System.out.println("Query 1 (ID Customer: "+idCustomer+"):");
 
 
         //find profile
@@ -535,7 +546,7 @@ public class Main {
 
         Customer customer = new Customer(cust.get(0), cust.get(1), cust.get(2), cust.get(3), cust.get(4), cust.get(5), cust.get(6), cust.get(7), cust.get(8));
         System.out.println(customer);
-
+        System.out.println("");
 
         //find orders/invoices
         System.out.println("Invoices/orders (in the last month):");
@@ -545,14 +556,27 @@ public class Main {
                 System.out.println(allInvoices.get(i));
             }
         }
+        System.out.println("");
 
 
         //find feedback
-
-        //find posts
         ScanParams scanParams = new ScanParams().match("*").count(100000);
         List<String> results = jedis.scan("0", scanParams).getResult();
         List<String> postsIds = new ArrayList<>();
+
+        System.out.println("Feedbacks :");
+        for(int i=0; i<results.size();i++) {
+            if(results.get(i).contains("feedback_")) {
+                List<String> res = jedis.hmget(results.get(i), "asin", "id", "feedback");
+                Feedback f = new Feedback(res.get(0), res.get(1), res.get(2));
+                if(f.id.equals(customer.id)) System.out.println(f);
+            }
+        }
+        System.out.println("");
+
+
+
+        //find posts
         for(int i=0; i<results.size();i++) {
             if(results.get(i).contains("post_hasCreator_person_")) {
                 List<String> res = jedis.hmget(results.get(i), "Post.id", "Person.id");
@@ -567,16 +591,33 @@ public class Main {
                 System.out.println(p);
             }
         }
+        System.out.println("");
 
         //find the category in which he has bought the largest number of product
+        HashMap<String, Integer> listProduits = new HashMap<>();
         for(int i=0 ; i<allInvoices.size(); i++) {
             if(allInvoices.get(i).personId.equals(customer.id)) {
-                System.out.println(allInvoices.get(i).products);
+                List<Product> prods = allInvoices.get(i).products;
+                for(int j =0; j<prods.size();j++) {
+                    String key = prods.get(j).brand;
+                    if(listProduits.containsKey(key)) listProduits.put(key, listProduits.get(key) + 1);
+                    else listProduits.put(key, 1);
+                }
             }
         }
-        //find the tag which he has engaged the greatest times in the posts
 
-        System.out.println("END query 1:");
+        String highest = "";
+        int highestNumber = 0;
+        for(Map.Entry<String, Integer> entry : listProduits.entrySet()) {
+            if(entry.getValue() > highestNumber) {
+                highest = entry.getKey();
+                highestNumber = entry.getValue();
+            }
+        }
+        System.out.println("The category in which he has bought the largest number of product: "+highest + " (" + highestNumber + ").");
+
+        System.out.println("\nEND query 1");
+        System.out.println("--------------------\n\n");
     }
 
     public boolean lastMonth(String date) {

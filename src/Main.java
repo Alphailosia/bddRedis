@@ -24,7 +24,8 @@ public class Main {
         //jedis.flushAll();
 
         System.out.println("connection reussi");
-/*
+        
+        /*
         // ajout des invoices
         m.importInvoiceXML();
         System.out.println("ajout des invoices");
@@ -319,6 +320,36 @@ public class Main {
 		}
 	}
 
+    public static ArrayList<HashMap<String,String>> readCsvFeedback(String file, String splitter) throws IOException {
+    	BufferedReader reader = new BufferedReader(new FileReader (file));
+		ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
+		String line = null;
+		StringBuilder stringBuilder = new StringBuilder();
+		String ls = System.getProperty("line.separator");
+		HashMap<String, String> user = new HashMap<String,String>();
+		ArrayList<String> key = new ArrayList<>();
+
+		key.add("asin");
+		key.add("id");
+		key.add("feedback");
+		try {
+			while((line = reader.readLine()) != null) {
+				
+					user=new HashMap<String,String>();	
+
+					String[] oui = traitementProduit(line,splitter,key.size());
+					
+					for(int i=0;i<oui.length;i++) {
+						user.put(key.get(i), oui[i]);
+					}
+					result.add(user);
+			}
+			return result;
+		} finally {
+			reader.close();
+		}
+	}
+    
 	private static String[] traitementProduit(String line,String split, int size) {
 		if(line.split(split).length==size) {
 			return line.split(split);

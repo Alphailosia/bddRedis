@@ -21,13 +21,15 @@ public class Main {
         Main m = new Main();
         Jedis jedis = m.jedis;
         String lien = m.lien;
-        jedis.flushAll();
+        //jedis.flushAll();
 
         System.out.println("connection reussi");
-        
-       /* m.importInvoiceXML();
-        m.getAllInvoices();
-        */
+/*
+        // ajout des invoices
+        m.importInvoiceXML();
+        System.out.println("ajout des invoices");
+        //m.getAllInvoices();
+
         // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
      	ArrayList<HashMap<String,String>> listUser = readCsvProduit(lien + "product/Product.csv",",");
      	
@@ -74,7 +76,7 @@ public class Main {
         
         // ajout des customers
      	
-        /*listUser = readCsv(lien + "customer/person_0_0.csv","\\|");
+        listUser = readCsv(lien + "customer/person_0_0.csv","\\|");
      	
      	for(int i=0;i<listUser.size();i++) {
 
@@ -84,7 +86,7 @@ public class Main {
      	
      	System.out.println("ajout des customers");
      	
-     	
+
      	// ajout des feedback
      	
         listUser = readCsv(lien + "feedback/Feedback.csv","\\|");
@@ -186,6 +188,7 @@ public class Main {
 
         }
         
+        m.query1("5296");
         System.out.println("ajout des commandes");*/
 
 
@@ -440,5 +443,32 @@ public class Main {
 
         return result;
     }
-		
+
+    public void query1(String idCustomer) {
+        System.out.println("Query 1:");
+
+
+        //find profile
+        List<String> cust = jedis.hmget("customer_" + idCustomer,
+                "id", "firstName", "lastName", "gender", "birthday", "creationDate", "locationIP", "browserUsed", "place");
+        System.out.println("Profile :");
+
+        Customer customer = new Customer(cust.get(0), cust.get(1), cust.get(2), cust.get(3), cust.get(4), cust.get(5), cust.get(6), cust.get(7), cust.get(8));
+        System.out.println(customer);
+
+
+        //find orders
+
+
+        //find invoices
+        //find feedback
+        //find comments
+        //find posts
+        //(In the last month)
+
+        //find the category in which he has bought the largest number of product
+
+        //find the tag which he has engaged the greatest times in the posts
+    }
+
 }

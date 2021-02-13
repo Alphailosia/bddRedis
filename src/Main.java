@@ -633,7 +633,7 @@ public class Main {
             }
         }
 
-        System.out.println("Persons who bought the product :");
+        System.out.println("Persons who bought the product ("+idProduct+"):");
         for(String personId : personBougthIt) {
             List<String> cust = jedis.hmget("customer_" + personId, "firstName", "lastName");
             System.out.println(cust.get(0) + " " + cust.get(1));

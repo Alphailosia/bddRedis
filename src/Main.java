@@ -31,9 +31,9 @@ public class Main {
         m.query1("19791209300458");
         m.query1("4145");
 
-        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
+        //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
 
-        m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
+        //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
 
 
 /*
@@ -527,20 +527,6 @@ public class Main {
         return result;
     }
 
-    public List<Post> getAllPosts() {
-        ScanParams scanParams = new ScanParams().match("*").count(1000000);
-        List<String> results = jedis.scan("0", scanParams).getResult();
-        List<Post> posts = new ArrayList<>();
-        for(int i=0; i<results.size();i++) {
-            if(results.get(i).contains("post_")) {
-                List<String> res = jedis.hmget(results.get(i), "id", "imageFile", "creationDate", "locationIP", "browserUsed", "language", "content", "length");
-                Post p = new Post(res.get(0), res.get(1), res.get(2), res.get(3), res.get(4), res.get(5), res.get(6), res.get(7));
-                posts.add(p);
-            }
-        }
-        return posts;
-    }
-
     public void query1(String idCustomer) {
         System.out.println("Query 1 (ID Customer: "+idCustomer+"):");
 
@@ -619,6 +605,28 @@ public class Main {
             }
         }
         System.out.println("The category in which he has bought the largest number of product: "+highest + " (" + highestNumber + ").");
+        System.out.println("");
+
+        //Tags
+        HashMap<String, Integer> tags = new HashMap<>();
+        for(int i=0; i<postsIds.size();i++) {
+            List<String> res = jedis.hmget("post_hasTag_tag_"+postsIds.get(i), "Post.id", "Tag.id");
+            String tag = res.get(1);
+            if(tag != null) {
+                if(tags.containsKey(tag)) tags.put(tag, tags.get(tag) + 1);
+                else tags.put(tag, 1);
+            }
+        }
+        String highestTag = "";
+        int highestTagNumber = 0;
+        for(Map.Entry<String, Integer> entry : tags.entrySet()) {
+            if(entry.getValue() > highestTagNumber) {
+                highestTag = entry.getKey();
+                highestTagNumber = entry.getValue();
+            }
+        }
+        System.out.println("The tag which he has engaged the greatest times in the posts: "+highestTag + " (" + highestTagNumber + ").");
+
 
         System.out.println("\nEND query 1");
         System.out.println("--------------------\n\n");
@@ -674,6 +682,10 @@ public class Main {
 
         System.out.println("\nEND query 3");
         System.out.println("--------------------\n\n");
+    }
+
+    public void query5() {
+
     }
 
     public boolean lastMonth(String date) {

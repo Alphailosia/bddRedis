@@ -27,7 +27,7 @@ public class Main {
         //jedis.flushAll();
 
         System.out.println("connexion reussi");
-
+        /*
         m.query1("19791209300458");
         m.query1("4145");
         //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
@@ -35,14 +35,18 @@ public class Main {
         //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
 
 
-/*
+
         // ajout des invoices
         m.importInvoiceXML();
         System.out.println("ajout des invoices");
         //m.getAllInvoices();
-
+        
+        */
         // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-     	ArrayList<HashMap<String,String>> listUser = readCsvProduit(lien + "product/Product.csv",",");
+     	ArrayList<HashMap<String,String>> listUser = new ArrayList<HashMap<String,String>>();
+     	
+     	/*
+     	listUser = readCsvProduit(lien + "product/Product.csv",",");
      	
      	for(int i=0;i<listUser.size();i++) {
 
@@ -136,10 +140,10 @@ public class Main {
 
         System.out.println("ajout des person_hasInterest_tag");
 
-
+		*/
         // ajout des person_knows_person
 
-        listUser = readCsv(lien + "socialNetwork/person_knows_person_0_0.csv","\\|");
+        listUser = readCsvKnows(lien + "socialNetwork/person_knows_person_0_0.csv","\\|");
 
         for(int i=0;i<listUser.size();i++) {
 
@@ -149,7 +153,7 @@ public class Main {
 
         System.out.println("ajout des person_knows_person");
 
-
+        /*
         // ajout des post
 
         listUser = readCsv(lien + "socialNetwork/post_0_0.csv","\\|");
@@ -248,7 +252,7 @@ public class Main {
         o.updateOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "totalPrice", "140.15");
 
         ///Suppression d'un order
-        o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");*/
+        o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");
 
 
         ///Ajout d'un vendor
@@ -270,9 +274,9 @@ public class Main {
         c.updateCustomer(jedis, "2199025266270", "place", "420");
 
         ///Suppression d'un customer
-        c.deleteCustomer(jedis, "2199025266270");
+        c.deleteCustomer(jedis, "2199025266270");*/
 
-*/
+
 
 
 
@@ -395,6 +399,36 @@ public class Main {
 		key.add("asin");
 		key.add("id");
 		key.add("feedback");
+		try {
+			while((line = reader.readLine()) != null) {
+				
+					user=new HashMap<String,String>();	
+
+					String[] oui = traitementProduit(line,splitter,key.size());
+					
+					for(int i=0;i<oui.length;i++) {
+						user.put(key.get(i), oui[i]);
+					}
+					result.add(user);
+			}
+			return result;
+		} finally {
+			reader.close();
+		}
+	}
+    
+    public static ArrayList<HashMap<String,String>> readCsvKnows(String file, String splitter) throws IOException {
+    	BufferedReader reader = new BufferedReader(new FileReader (file));
+		ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
+		String line = null;
+		StringBuilder stringBuilder = new StringBuilder();
+		String ls = System.getProperty("line.separator");
+		HashMap<String, String> user = new HashMap<String,String>();
+		ArrayList<String> key = new ArrayList<>();
+
+		key.add("Person.id");
+		key.add("Person2.id");
+		key.add("creationDate");
 		try {
 			while((line = reader.readLine()) != null) {
 				
@@ -666,109 +700,6 @@ public class Main {
         System.out.println("--------------------\n\n");
     }
     
-    public void query4() throws IOException {
-    	/*
-    	 * Then for each person, traverse her knows-graph with 3-hop to find the friends
-    	 * 
-    	 * Finally return the common friends of these two persons. 
-    	 */
-    	
-    	// Trouver les 2 personnes qui ont d�pens� le plus
-    	
-    	ArrayList<String> id = new ArrayList<>();
-    	HashMap<String, Float> hmPerson = new HashMap<String, Float>();
-    	
-    	// recup�ration des id a partir du fichier
-    	BufferedReader reader = new BufferedReader(new FileReader (lien+"order/Order.json"));
-        String line = null;
-        StringBuilder stringBuilder = new StringBuilder();
-        String ls = System.getProperty("line.separator");
-        try {
-            while((line = reader.readLine()) != null) {
-            	line = line.replaceAll("\\[Watch\\]","");
-                line = line.replaceAll("\\[2014 MODEL\\]","");
-            	
-                int indexTab = line.indexOf("[");
-                int finTab = line.indexOf("]");
-                
-                String tabProduct = replaceComma(line.substring(indexTab-12, finTab+1)); // le tableau des produits commander
-                line = line.substring(0, indexTab-14)+line.substring(finTab+1);
-                
-                // traitement du reste de la ligne 
-                line = line.substring(1,line.length()-1);
-                String[] resteLigne = line.split(",");
-                
-                String[] ui = resteLigne[0].split(":");
-                id.add(ui[1]);
-            }
-        } finally {
-            reader.close();
-        }
-        
-        System.out.println("ca marche pour l'instant ");
-        
-        for(String orderId : id) {
-        	List<String> info = jedis.hmget("order_"+orderId, "PersonId","TotalPrice");
-        	if(hmPerson.get(info.get(0))==null) {
-        		hmPerson.put(info.get(0), Float.parseFloat(info.get(1)));
-        	}
-        	else {
-        		float prix =  Float.parseFloat(info.get(1)) + hmPerson.get(info.get(0));
-        		hmPerson.put(info.get(0), prix);
-        	}
-        }
-        
-        System.out.println("toujours la");
-        
-        ArrayList<Float> prices = new ArrayList<Float>();
-        for(Float f : hmPerson.values()) {
-        	prices.add(f);
-        }
-        prices.sort(null);
-        Float tab[] = new Float[2];
-        String tab2[] = new String[2];
-        tab[0] = prices.get(prices.size()-1);
-        tab[1] = prices.get(prices.size()-2);
-        
-        for(String s : hmPerson.keySet()) {
-        	if(hmPerson.get(s).equals(tab[0])) {
-        		tab2[0]=s;
-        	}
-        	else if(hmPerson.get(s).equals(tab[1])) {
-        		tab2[1]=s;
-        	}
-        }
-        
-        System.out.println("Classement : ");
-        for(String s : tab2) {
-        	
-        	System.out.println("- "+s);
-        }
-        
-        // on recherche les amis qu'ils ont en commun 
-        ArrayList<String> user1Friend = new ArrayList<String>();
-        ArrayList<String> user2Friend = new ArrayList<String>();
-        ArrayList<String> commonFriend = new ArrayList<String>();
-        
-        reader = new BufferedReader(new FileReader (lien+"socialNetwork/person_knows_person_0_0.csv"));
-        try {
-            while((line = reader.readLine()) != null) {
-            	if(line.split("\\|")[0].equals(tab2[0].substring(1, tab2[0].length()-2))) {
-            		user1Friend.add(line.split("\\|")[1]);
-            	}
-            	else if(line.split("\\|")[0].equals(tab2[1].substring(1, tab2[1].length()-2))) {
-            		user2Friend.add(line.split("\\|")[1]);
-            	}
-            }
-        } finally {
-            reader.close();
-        }
-        
-        System.out.println("on est encore ici");
-        
-        
-    }
-
     public void query2(String idProduct, LocalDate d1, LocalDate d2) {
         System.out.println("Query 2 (ID product: "+idProduct+"):");
 
@@ -819,6 +750,87 @@ public class Main {
 
         System.out.println("\nEND query 3");
         System.out.println("--------------------\n\n");
+    }
+
+    public void query4() throws IOException {
+    	
+    	// Trouver les 2 personnes qui ont d�pens� le plus
+    	
+    	ArrayList<String> id = new ArrayList<>();
+    	HashMap<String, Float> hmPerson = new HashMap<String, Float>();
+    	
+
+        ScanParams scanParams = new ScanParams().match("*").count(800000);
+        List<String> results = jedis.scan("0", scanParams).getResult();      
+        
+        for(String orderId : results) {
+        	
+        	if(orderId.contains("order_")) {
+        		List<String> info = jedis.hmget(orderId, "PersonId","TotalPrice");
+            	if(hmPerson.get(info.get(0))==null) {
+            		hmPerson.put(info.get(0), Float.parseFloat(info.get(1)));
+            	}
+            	else {
+            		float prix =  Float.parseFloat(info.get(1)) + hmPerson.get(info.get(0));
+            		hmPerson.put(info.get(0), prix);
+            	}
+        	}
+        }
+        
+        ArrayList<Float> prices = new ArrayList<Float>();
+        for(Float f : hmPerson.values()) {
+        	prices.add(f);
+        }
+        prices.sort(null);
+        Float tab[] = new Float[2];
+        String tab2[] = new String[2];
+        tab[0] = prices.get(prices.size()-1);
+        tab[1] = prices.get(prices.size()-2);
+        System.out.println(tab[0]+ " "+ tab[1]);
+        
+        for(String s : hmPerson.keySet()) {
+        	if(hmPerson.get(s).equals(tab[0])) {
+        		tab2[0]=s;
+        	}
+        	else if(hmPerson.get(s).equals(tab[1])) {
+        		tab2[1]=s;
+        	}
+        }
+        
+        System.out.println("Classement : ");
+        for(String s : tab2) {
+        	
+        	System.out.println("- "+s);
+        }
+        
+        // on recherche les amis qu'ils ont en commun 
+        ArrayList<String> user1Friend = new ArrayList<String>();
+        ArrayList<String> user2Friend = new ArrayList<String>();
+        ArrayList<String> commonFriend = new ArrayList<String>();
+        
+        for(String orderId : results) {
+        	
+        	if(orderId.contains("knows_")) {
+        		List<String> info = jedis.hmget(orderId, "Person.id","Person2.id");
+            	if(info.get(0).equals(tab2[0])) {
+            		user1Friend.add(info.get(1));
+            	}
+            	else if(info.get(0).equals(tab2[1])){
+            		user2Friend.add(info.get(1));
+            	}
+        	}
+        }
+        
+        for(String f1 : user1Friend) {
+        	for(String f2: user2Friend) {
+        		if(f1.equals(f2)) {
+        			commonFriend.add(f1);
+        		}
+        	}
+        }
+        
+        System.out.println("L'utilisateur "+tab2[0]+" et  "+tab2[1]+" ont "+commonFriend.size()+" amis en commun !!!!!!!");
+        
     }
 
     public void query5() {

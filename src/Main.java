@@ -6,6 +6,9 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.ScanParams;
 
 import java.io.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,9 +26,10 @@ public class Main {
         String lien = m.lien;
         //jedis.flushAll();
 
-        System.out.println("connection reussi");
-        
-        /*
+        System.out.println("connexion reussi");
+
+        m.query1("19791209300458");
+/*
         // ajout des invoices
         m.importInvoiceXML();
         System.out.println("ajout des invoices");
@@ -189,8 +193,7 @@ public class Main {
 
         }
         
-        m.query1("5296");
-        System.out.println("ajout des commandes");*/
+        System.out.println("ajout des commandes");
 
 
         ///Ajout d'un produit
@@ -201,28 +204,7 @@ public class Main {
         p.deleteProduct(jedis, "B000003NUS");
 
 
-        ///Ajout d'un feedback
-        Feedback f = new Feedback();
-        f.ajoutFeedback(jedis, "B005FUKW6M", "17592186053220", "'5.0,Finally found a good dart cabinet without some crap logo on the front, or some fake antiquated dart pub artwork!random words:reccoreckonrclameroadworkrootiragglerestamprussellrhombus'");
-
-        ///Suppression d'un feedback
-        f.deleteFeedback(jedis, "B005FUKW6M_17592186053220");
-
-
-        ///Ajout d'un post
-        Post po = new Post();
-        po.ajoutPost(jedis, "1236950581248", "", "2011-09-15T00:45:16.684+0000", "192.101.113.232", "Internet Explorer", "uz", "bout Armasight Spark CORE Multi-Purpose Night Vision Monocular, # 62 on October 8, 2007, and his career-high doub", "95");
-
-        ///Suppression d'un post
-        po.deletePost(jedis, "1236950581248");
-
-
-        ///Ajout d'un order
-        Order o = new Order();
-        o.ajoutOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "10995136278715", "2018-09-22", "133.53", "La liste des produits");
-
-        ///Suppression d'un order
-        o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");
+ */
 
     }
 
@@ -274,8 +256,8 @@ public class Main {
 
     }
 
-    public void getAllInvoices() {
-        ScanParams scanParams = new ScanParams().match("*").count(10);
+    public List<Invoice> getAllInvoices() {
+        ScanParams scanParams = new ScanParams().match("*").count(100000);
         List<String> results = jedis.scan("0", scanParams).getResult();
         List<Invoice> invoices = new ArrayList<>();
         for(int i=0; i<results.size();i++) {
@@ -286,12 +268,7 @@ public class Main {
                 invoices.add(inv);
             }
         }
-        System.out.println("\nAll invoices (cap 10) :");
-        System.out.println("----------------------");
-        for(int j=0; j<invoices.size();j++) {
-            System.out.println(invoices.get(j));
-        }
-        System.out.println("----------------------");
+        return invoices;
     }
     
     public static ArrayList<HashMap<String,String>> readCsvProduit(String file, String splitter) throws IOException {
@@ -489,6 +466,21 @@ public class Main {
         return result;
     }
 
+    public List<Post> getAllPosts() {
+        ScanParams scanParams = new ScanParams().match("*").count(1000000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        List<Post> posts = new ArrayList<>();
+        for(int i=0; i<results.size();i++) {
+            if(results.get(i).contains("post_")) {
+                List<String> res = jedis.hmget(results.get(i), "id", "imageFile", "creationDate", "locationIP", "browserUsed", "language", "content", "length");
+                Post p = new Post(res.get(0), res.get(1), res.get(2), res.get(3), res.get(4), res.get(5), res.get(6), res.get(7));
+                posts.add(p);
+            }
+        }
+        return posts;
+    }
+
+
     public void query1(String idCustomer) {
         System.out.println("Query 1:");
 
@@ -502,18 +494,55 @@ public class Main {
         System.out.println(customer);
 
 
-        //find orders
+        //find orders/invoices
+        System.out.println("Invoices/orders (in the last month):");
+        List<Invoice> allInvoices = getAllInvoices();
+        for(int i=0 ; i<allInvoices.size(); i++) {
+            if(allInvoices.get(i).personId.equals(customer.id) && lastMonth(allInvoices.get(i).orderDate) ) {
+                System.out.println(allInvoices.get(i));
+            }
+        }
 
 
-        //find invoices
         //find feedback
-        //find comments
+
         //find posts
-        //(In the last month)
+        ScanParams scanParams = new ScanParams().match("*").count(100000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        List<String> postsIds = new ArrayList<>();
+        for(int i=0; i<results.size();i++) {
+            if(results.get(i).contains("post_hasCreator_person_")) {
+                List<String> res = jedis.hmget(results.get(i), "Post.id", "Person.id");
+                if(res.get(1).equals(customer.id)) postsIds.add(res.get(0));
+            }
+        }
+        System.out.println("Posts (in the last month):");
+        for(int i=0; i<postsIds.size();i++) {
+            List<String> res = jedis.hmget("post_"+postsIds.get(i), "id", "imageFile", "creationDate", "locationIP", "browserUsed", "language", "content", "length");
+            Post p = new Post(res.get(0), res.get(1), res.get(2), res.get(3), res.get(4), res.get(5), res.get(6), res.get(7));
+            if(lastMonth(p.creationDate)) {
+                System.out.println(p);
+            }
+        }
 
         //find the category in which he has bought the largest number of product
-
+        for(int i=0 ; i<allInvoices.size(); i++) {
+            if(allInvoices.get(i).personId.equals(customer.id)) {
+                System.out.println(allInvoices.get(i).products);
+            }
+        }
         //find the tag which he has engaged the greatest times in the posts
+
+        System.out.println("END query 1:");
+    }
+
+    public boolean lastMonth(String date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate aMonth = LocalDate.now();
+        aMonth = aMonth.minusMonths(1);
+        LocalDate today = LocalDate.now();
+        LocalDate dateTime = LocalDate.parse(date.substring(0, 10), formatter);
+        return (dateTime.compareTo(aMonth) >= 0 && dateTime.compareTo(today) <= 0);
     }
 
 }

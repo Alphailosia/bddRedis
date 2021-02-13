@@ -140,7 +140,7 @@ public class Main {
 
         System.out.println("ajout des person_hasInterest_tag");
 
-		*/
+
         // ajout des person_knows_person
 
 
@@ -152,7 +152,7 @@ public class Main {
 
         System.out.println("ajout des person_knows_person");
 
-        /*
+
         // ajout des post
 
         listUser = readCsv(lien + "socialNetwork/post_0_0.csv","\\|");
@@ -190,7 +190,7 @@ public class Main {
         }
 
         System.out.println("ajout des post_hasTag_tag");
-        */
+
         
         // ajout des commandes
 
@@ -203,7 +203,7 @@ public class Main {
         }
         
         m.query4();
-        /*
+
         m.query1("5296");
         System.out.println("ajout des commandes");
 
@@ -273,8 +273,18 @@ public class Main {
         c.updateCustomer(jedis, "2199025266270", "place", "420");
 
         ///Suppression d'un customer
-        c.deleteCustomer(jedis, "2199025266270");*/
+        c.deleteCustomer(jedis, "2199025266270");
 
+        ///Ajout d'un invoice
+        Invoice i = new Invoice();
+        i.ajoutInvoice(jedis, "6711da51-dee6-452a-a7b7-f79a1cbb9437", "10995146278715", "2020-09-01", "171", "[{6485,B000HIE4WC,Topeak Dual Touch Bike Storage Stand, 51, Derbi},[8512,B000HJE4WC,Sportlock Leatherlock, 120, Chanel}]");
+
+        ///Modification d'un invoice
+        i.updateInvoice(jedis, "6711da51-dee6-452a-a7b7-f79a1cbb9437", "totalPrice", "150");
+
+        ///Suppression d'un invoice
+        i.deleteInvoice(jedis, "6711da51-dee6-452a-a7b7-f79a1cbb9437");
+*/
     }
 
     public void importInvoiceXML() {
@@ -318,7 +328,7 @@ public class Main {
                     }
 
                     params.put("products", products);
-                    jedis.hmset("invoice"+orderId, params);
+                    jedis.hmset("invoice_"+orderId, params);
                 }
             }
 

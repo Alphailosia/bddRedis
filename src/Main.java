@@ -25,9 +25,9 @@ public class Main {
 
         System.out.println("connection reussi");
         
-        m.importInvoiceXML();
+       /* m.importInvoiceXML();
         m.getAllInvoices();
-        
+        */
         // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
      	ArrayList<HashMap<String,String>> listUser = readCsvProduit(lien + "product/Product.csv",",");
      	
@@ -49,14 +49,20 @@ public class Main {
         try {
             while((line = reader.readLine()) != null) {
                 String[] tab = line.split(",");
+                
+                tab[1] =  tab[1].replaceAll("B005UND3CY","B00168NK9S");
+                tab[1] =  tab[1].replaceAll("B007M2S52E","B00I1WVRBK");
+                tab[1] =  tab[1].replaceAll("B000UUTAZQ","B002APDC0I");
+                
                 List<String> marque = jedis.hmget("product_"+tab[1], "asin","title", "price", "imgUrl");
                 marque.add(tab[0]);
                 HashMap<String, String> hm = new HashMap<>();
-                hm.put("asin", marque.get(0)+"");
-                hm.put("title", marque.get(1)+"");
-                hm.put("price", marque.get(2)+"");
-                hm.put("imgUrl", marque.get(3)+"");
-                hm.put("brand", marque.get(4)+"");
+                hm.put("asin", marque.get(0));
+                hm.put("title", marque.get(1));
+                hm.put("price", marque.get(2));
+                hm.put("imgUrl", marque.get(3));
+                hm.put("brand", marque.get(4));
+                
                 jedis.hmset("product_"+tab[1], hm);
             }
         } finally {
@@ -68,7 +74,7 @@ public class Main {
         
         // ajout des customers
      	
-        listUser = readCsv(lien + "customer/person_0_0.csv","\\|");
+        /*listUser = readCsv(lien + "customer/person_0_0.csv","\\|");
      	
      	for(int i=0;i<listUser.size();i++) {
 
@@ -180,7 +186,7 @@ public class Main {
 
         }
         
-        System.out.println("ajout des commandes");
+        System.out.println("ajout des commandes");*/
 
     }
 
@@ -306,10 +312,10 @@ public class Main {
 					user=new HashMap<String,String>();	
 
 					String[] oui = traitementProduit(line,splitter,key.size());
+					
 					for(int i=0;i<oui.length;i++) {
 						user.put(key.get(i), oui[i]);
 					}
-					
 					result.add(user);
 				}
 			}
@@ -328,8 +334,8 @@ public class Main {
 			String[] tabAtraiter = line.split(split);
 			
 			traitement[0] = tabAtraiter[0];
-			traitement[size-1] = tabAtraiter[tabAtraiter.length-1];
-			traitement[size-2] = tabAtraiter[tabAtraiter.length-2];
+			traitement[3] = tabAtraiter[tabAtraiter.length-1];
+			traitement[2] = tabAtraiter[tabAtraiter.length-2];
 			String s = "";
 			for(int i=1;i<tabAtraiter.length-2;i++) {
 				s+=tabAtraiter[i];

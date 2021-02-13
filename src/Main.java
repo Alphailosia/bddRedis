@@ -30,10 +30,9 @@ public class Main {
 
         m.query1("19791209300458");
         m.query1("4145");
+        //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
 
-        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
-
-        m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
+        //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
 
 
 /*
@@ -190,7 +189,7 @@ public class Main {
         System.out.println("ajout des post_hasTag_tag");
         */
         
-        // ajout des commande
+        // ajout des commandes
 
         ArrayList<HashMap<String,String>> listOskour = readJson(lien+"order/Order.json");
         
@@ -212,16 +211,19 @@ public class Main {
         Product p = new Product();
         p.ajoutProduct(jedis, "B000003NUS", "Black Mountain Products Single Band", "81.02", "http://ecx.images-amazon.com/images/I/41g2Pz8o8KL._SX342_.jpg", "chanel");
 
-        ///Suppression d'un produit
-        p.deleteProduct(jedis, "B000003NUS");
-
         ///modification d'un produit
         p.updateProduct(jedis, "B000003NUS", "price", "201");
+
+        ///Suppression d'un produit
+        p.deleteProduct(jedis, "B000003NUS");
 
 
         ///Ajout d'un feedback
         Feedback f = new Feedback();
         f.ajoutFeedback(jedis, "B005FUKW6M", "17592186053220", "'5.0,Finally found a good dart cabinet without some crap logo on the front, or some fake antiquated dart pub artwork!random words:reccoreckonrclameroadworkrootiragglerestamprussellrhombus'");
+
+        ///Modification d'un feedback
+        f.updateFeedback(jedis, "B005FUKW6M_17592186053220", "feedback", "'6.0,Finally found a good dart cabinet'");
 
         ///Suppression d'un feedback
         f.deleteFeedback(jedis, "B005FUKW6M_17592186053220");
@@ -231,6 +233,9 @@ public class Main {
         Post po = new Post();
         po.ajoutPost(jedis, "1236950581248", "", "2011-09-15T00:45:16.684+0000", "192.101.113.232", "Internet Explorer", "uz", "bout Armasight Spark CORE Multi-Purpose Night Vision Monocular, # 62 on October 8, 2007, and his career-high doub", "95");
 
+        ///Modification d'un post
+        po.updatePost(jedis, "1236950581248", "length", "96");
+
         ///Suppression d'un post
         po.deletePost(jedis, "1236950581248");
 
@@ -238,6 +243,9 @@ public class Main {
         ///Ajout d'un order
         Order o = new Order();
         o.ajoutOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "10995136278715", "2018-09-22", "133.53", "La liste des produits");
+
+        ///Modification d'un order
+        o.updateOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "totalPrice", "140.15");
 
         ///Suppression d'un order
         o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");*/
@@ -258,8 +266,12 @@ public class Main {
         Customer c = new Customer();
         c.ajoutCustomer(jedis, "2199025266270", "Mimi", "Cheh", "female", "1989-01-18", "2010-04-06T22:43:26.134+0000","27.129.140.209", "Chrome", "421");
 
+        ///Modification d'un customer
+        c.updateCustomer(jedis, "2199025266270", "place", "420");
+
         ///Suppression d'un customer
         c.deleteCustomer(jedis, "2199025266270");
+
 */
 
 
@@ -532,6 +544,7 @@ public class Main {
         return result;
     }
 
+
     public List<Post> getAllPosts() {
         ScanParams scanParams = new ScanParams().match("*").count(1000000);
         List<String> results = jedis.scan("0", scanParams).getResult();
@@ -546,7 +559,9 @@ public class Main {
         return posts;
     }
 
+
     public void query1(String idCustomer) {
+
         System.out.println("Query 1 (ID Customer: "+idCustomer+"):");
 
         //find profile
@@ -624,6 +639,28 @@ public class Main {
             }
         }
         System.out.println("The category in which he has bought the largest number of product: "+highest + " (" + highestNumber + ").");
+        System.out.println("");
+
+        //Tags
+        HashMap<String, Integer> tags = new HashMap<>();
+        for(int i=0; i<postsIds.size();i++) {
+            List<String> res = jedis.hmget("post_hasTag_tag_"+postsIds.get(i), "Post.id", "Tag.id");
+            String tag = res.get(1);
+            if(tag != null) {
+                if(tags.containsKey(tag)) tags.put(tag, tags.get(tag) + 1);
+                else tags.put(tag, 1);
+            }
+        }
+        String highestTag = "";
+        int highestTagNumber = 0;
+        for(Map.Entry<String, Integer> entry : tags.entrySet()) {
+            if(entry.getValue() > highestTagNumber) {
+                highestTag = entry.getKey();
+                highestTagNumber = entry.getValue();
+            }
+        }
+        System.out.println("The tag which he has engaged the greatest times in the posts: "+highestTag + " (" + highestTagNumber + ").");
+
 
         System.out.println("\nEND query 1");
         System.out.println("--------------------\n\n");
@@ -782,6 +819,10 @@ public class Main {
 
         System.out.println("\nEND query 3");
         System.out.println("--------------------\n\n");
+    }
+
+    public void query5() {
+
     }
 
     public boolean lastMonth(String date) {

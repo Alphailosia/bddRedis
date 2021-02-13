@@ -1,6 +1,7 @@
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Post {
 
@@ -60,5 +61,12 @@ public class Post {
 	public static void deletePost(Jedis jedis, String id) {
 		jedis.del("post_"+id);
 		System.out.println("post supprimé");
+	}
+
+	public static void updatePost(Jedis jedis,String id, String key, String value) {
+		Map<String, String> m = jedis.hgetAll("post_"+id);
+		m.put(key, value);
+		jedis.hmset("post_"+id, m);
+		System.out.println("post modifié");
 	}
 }

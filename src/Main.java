@@ -28,11 +28,11 @@ public class Main {
 
         System.out.println("connexion reussi");
 
-        m.query1("19791209300458");
-        m.query1("4145");
+        //m.query1("19791209300458");
+        //m.query1("4145");
         //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
-
         //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
+        //m.query6("4398046516033", "4398046516051");
 
 
 /*
@@ -139,12 +139,11 @@ public class Main {
 
         // ajout des person_knows_person
 
-        listUser = readCsv(lien + "socialNetwork/person_knows_person_0_0.csv","\\|");
+
+        listUser = readCsvKnows(lien + "socialNetwork/person_knows_person_0_0.csv","\\|");
 
         for(int i=0;i<listUser.size();i++) {
-
-            jedis.hmset("person_knows_person_"+listUser.get(i).get("Person.id"),listUser.get(i) );
-
+            jedis.hmset("person_knows_person_"+listUser.get(i).get("PersonId1")+listUser.get(i).get("PersonId2"),listUser.get(i) );
         }
 
         System.out.println("ajout des person_knows_person");
@@ -377,6 +376,32 @@ public class Main {
 			reader.close();
 		}
 	}
+
+    public static ArrayList<HashMap<String,String>> readCsvKnows(String file, String splitter) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader (file));
+        ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
+        String line = null;
+        StringBuilder stringBuilder = new StringBuilder();
+        String ls = System.getProperty("line.separator");
+        HashMap<String, String> user = new HashMap<String,String>();
+        ArrayList<String> key = new ArrayList<>();
+        key.add("PersonId1");
+        key.add("PersonId2");
+        key.add("creationDate");
+        try {
+            while((line = reader.readLine()) != null) {
+                user=new HashMap<String,String>();
+                List<String> oui = Arrays.asList(line.split(splitter));
+                for(int i=0;i<oui.size();i++) {
+                    user.put(key.get(i), oui.get(i));
+                }
+                result.add(user);
+            }
+            return result;
+        } finally {
+            reader.close();
+        }
+    }
 
     public static ArrayList<HashMap<String,String>> readCsvFeedback(String file, String splitter) throws IOException {
     	BufferedReader reader = new BufferedReader(new FileReader (file));
@@ -713,7 +738,40 @@ public class Main {
         System.out.println("--------------------\n\n");
     }
 
-    public void query5() {
+    //Oskour ?!?!
+    public void query5(String idCustomer, String productCategorie) {
+
+    }
+
+    //TODO: To continue
+    public void query6(String idCustomer1, String idCustomer2) {
+
+        ScanParams scanParams = new ScanParams().match("*").count(100000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+
+        List<String> friends1 = new ArrayList<>();
+        List<String> friends2 = new ArrayList<>();
+        for(int i=0; i<results.size();i++) {
+
+            if(results.get(i).contains("person_knows_person_"+idCustomer1)) {
+                List<String> res = jedis.hmget(results.get(i), "PersonId1", "PersonId2");
+                if(res.get(1) != null) friends1.add(res.get(1));
+            } else if(results.get(i).contains("person_knows_person_"+idCustomer2)) {
+                List<String> res = jedis.hmget(results.get(i), "PersonId1", "PersonId2");
+                if(res.get(1) != null) friends2.add(res.get(1));
+            }
+        }
+
+
+        System.out.println(friends1);
+        System.out.println(friends2);
+
+        List<String> communs = new ArrayList<>();
+        for(String f : friends1) {
+            if(friends2.contains(f)) communs.add(f);
+        }
+        System.out.println("communs: ");
+        System.out.println(communs);
 
     }
 

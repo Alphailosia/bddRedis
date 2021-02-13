@@ -188,7 +188,7 @@ public class Main {
         }
 
         System.out.println("ajout des post_hasTag_tag");
-        
+        */
         
         // ajout des commande
 
@@ -199,6 +199,11 @@ public class Main {
             jedis.hmset("order_"+listOskour.get(i).get("OrderId"),listOskour.get(i) );
 
         }
+        
+        m.query4();
+        /*
+        m.query1("5296");
+        System.out.println("ajout des commandes");
 
         System.out.println("ajout des commandes");
 
@@ -235,7 +240,7 @@ public class Main {
         o.ajoutOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "10995136278715", "2018-09-22", "133.53", "La liste des produits");
 
         ///Suppression d'un order
-        o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");
+        o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");*/
 
 
         ///Ajout d'un vendor
@@ -622,6 +627,109 @@ public class Main {
 
         System.out.println("\nEND query 1");
         System.out.println("--------------------\n\n");
+    }
+    
+    public void query4() throws IOException {
+    	/*
+    	 * Then for each person, traverse her knows-graph with 3-hop to find the friends
+    	 * 
+    	 * Finally return the common friends of these two persons. 
+    	 */
+    	
+    	// Trouver les 2 personnes qui ont d�pens� le plus
+    	
+    	ArrayList<String> id = new ArrayList<>();
+    	HashMap<String, Float> hmPerson = new HashMap<String, Float>();
+    	
+    	// recup�ration des id a partir du fichier
+    	BufferedReader reader = new BufferedReader(new FileReader (lien+"order/Order.json"));
+        String line = null;
+        StringBuilder stringBuilder = new StringBuilder();
+        String ls = System.getProperty("line.separator");
+        try {
+            while((line = reader.readLine()) != null) {
+            	line = line.replaceAll("\\[Watch\\]","");
+                line = line.replaceAll("\\[2014 MODEL\\]","");
+            	
+                int indexTab = line.indexOf("[");
+                int finTab = line.indexOf("]");
+                
+                String tabProduct = replaceComma(line.substring(indexTab-12, finTab+1)); // le tableau des produits commander
+                line = line.substring(0, indexTab-14)+line.substring(finTab+1);
+                
+                // traitement du reste de la ligne 
+                line = line.substring(1,line.length()-1);
+                String[] resteLigne = line.split(",");
+                
+                String[] ui = resteLigne[0].split(":");
+                id.add(ui[1]);
+            }
+        } finally {
+            reader.close();
+        }
+        
+        System.out.println("ca marche pour l'instant ");
+        
+        for(String orderId : id) {
+        	List<String> info = jedis.hmget("order_"+orderId, "PersonId","TotalPrice");
+        	if(hmPerson.get(info.get(0))==null) {
+        		hmPerson.put(info.get(0), Float.parseFloat(info.get(1)));
+        	}
+        	else {
+        		float prix =  Float.parseFloat(info.get(1)) + hmPerson.get(info.get(0));
+        		hmPerson.put(info.get(0), prix);
+        	}
+        }
+        
+        System.out.println("toujours la");
+        
+        ArrayList<Float> prices = new ArrayList<Float>();
+        for(Float f : hmPerson.values()) {
+        	prices.add(f);
+        }
+        prices.sort(null);
+        Float tab[] = new Float[2];
+        String tab2[] = new String[2];
+        tab[0] = prices.get(prices.size()-1);
+        tab[1] = prices.get(prices.size()-2);
+        
+        for(String s : hmPerson.keySet()) {
+        	if(hmPerson.get(s).equals(tab[0])) {
+        		tab2[0]=s;
+        	}
+        	else if(hmPerson.get(s).equals(tab[1])) {
+        		tab2[1]=s;
+        	}
+        }
+        
+        System.out.println("Classement : ");
+        for(String s : tab2) {
+        	
+        	System.out.println("- "+s);
+        }
+        
+        // on recherche les amis qu'ils ont en commun 
+        ArrayList<String> user1Friend = new ArrayList<String>();
+        ArrayList<String> user2Friend = new ArrayList<String>();
+        ArrayList<String> commonFriend = new ArrayList<String>();
+        
+        reader = new BufferedReader(new FileReader (lien+"socialNetwork/person_knows_person_0_0.csv"));
+        try {
+            while((line = reader.readLine()) != null) {
+            	if(line.split("\\|")[0].equals(tab2[0].substring(1, tab2[0].length()-2))) {
+            		user1Friend.add(line.split("\\|")[1]);
+            	}
+            	else if(line.split("\\|")[0].equals(tab2[1].substring(1, tab2[1].length()-2))) {
+            		user2Friend.add(line.split("\\|")[1]);
+            	}
+            }
+        } finally {
+            reader.close();
+        }
+        
+        System.out.println("on est encore ici");
+        
+        
     }
 
     public void query2(String idProduct, LocalDate d1, LocalDate d2) {

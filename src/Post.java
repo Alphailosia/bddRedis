@@ -13,9 +13,7 @@ public class Post {
     public String content;
     public String length;
     
-	public Post(String id, String imageFile, String creationDate, String locationIP, String browserUsed,
-			String language, String content, String length) {
-		super();
+	public Post(String id, String imageFile, String creationDate, String locationIP, String browserUsed, String language, String content, String length) {
 		this.id = id;
 		this.imageFile = imageFile;
 		this.creationDate = creationDate;

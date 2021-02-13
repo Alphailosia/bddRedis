@@ -275,10 +275,6 @@ public class Main {
         ///Suppression d'un customer
         c.deleteCustomer(jedis, "2199025266270");*/
 
-
-
-
-
     }
 
     public void importInvoiceXML() {
@@ -385,32 +381,6 @@ public class Main {
 			reader.close();
 		}
 	}
-
-    public static ArrayList<HashMap<String,String>> readCsvKnows(String file, String splitter) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader (file));
-        ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
-        String line = null;
-        StringBuilder stringBuilder = new StringBuilder();
-        String ls = System.getProperty("line.separator");
-        HashMap<String, String> user = new HashMap<String,String>();
-        ArrayList<String> key = new ArrayList<>();
-        key.add("PersonId1");
-        key.add("PersonId2");
-        key.add("creationDate");
-        try {
-            while((line = reader.readLine()) != null) {
-                user=new HashMap<String,String>();
-                List<String> oui = Arrays.asList(line.split(splitter));
-                for(int i=0;i<oui.size();i++) {
-                    user.put(key.get(i), oui.get(i));
-                }
-                result.add(user);
-            }
-            return result;
-        } finally {
-            reader.close();
-        }
-    }
 
     public static ArrayList<HashMap<String,String>> readCsvFeedback(String file, String splitter) throws IOException {
     	BufferedReader reader = new BufferedReader(new FileReader (file));

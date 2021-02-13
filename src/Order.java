@@ -1,6 +1,7 @@
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Order {
 	
@@ -50,5 +51,11 @@ public class Order {
 		System.out.println("order supprimé");
 	}
 
+	public static void updateOrder(Jedis jedis,String id, String key, String value) {
+		Map<String, String> m = jedis.hgetAll("order_"+id);
+		m.put(key, value);
+		jedis.hmset("order_"+id, m);
+		System.out.println("order modifié");
+	}
 
 }

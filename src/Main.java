@@ -95,8 +95,8 @@ public class Main {
      	
 
      	// ajout des feedback
-     	
-        listUser = readCsv(lien + "feedback/Feedback.csv","\\|");
+
+        listUser = readCsvFeedback(lien + "feedback/Feedback.csv","\\|");
      	
      	for(int i=0;i<listUser.size();i++) {
 
@@ -541,7 +541,7 @@ public class Main {
 
         Customer customer = new Customer(cust.get(0), cust.get(1), cust.get(2), cust.get(3), cust.get(4), cust.get(5), cust.get(6), cust.get(7), cust.get(8));
         System.out.println(customer);
-
+        System.out.println("");
 
         //find orders/invoices
         System.out.println("Invoices/orders (in the last month):");
@@ -551,14 +551,27 @@ public class Main {
                 System.out.println(allInvoices.get(i));
             }
         }
+        System.out.println("");
 
 
         //find feedback
-
-        //find posts
         ScanParams scanParams = new ScanParams().match("*").count(100000);
         List<String> results = jedis.scan("0", scanParams).getResult();
         List<String> postsIds = new ArrayList<>();
+
+        System.out.println("Feedbacks :");
+        for(int i=0; i<results.size();i++) {
+            if(results.get(i).contains("feedback_")) {
+                List<String> res = jedis.hmget(results.get(i), "asin", "id", "feedback");
+                Feedback f = new Feedback(res.get(0), res.get(1), res.get(2));
+                if(f.id.equals(customer.id)) System.out.println(f);
+            }
+        }
+        System.out.println("");
+
+
+
+        //find posts
         for(int i=0; i<results.size();i++) {
             if(results.get(i).contains("post_hasCreator_person_")) {
                 List<String> res = jedis.hmget(results.get(i), "Post.id", "Person.id");
@@ -573,6 +586,7 @@ public class Main {
                 System.out.println(p);
             }
         }
+        System.out.println("");
 
         //find the category in which he has bought the largest number of product
         HashMap<String, Integer> listProduits = new HashMap<>();
@@ -597,7 +611,7 @@ public class Main {
         }
         System.out.println("The category in which he has bought the largest number of product: "+highest + " (" + highestNumber + ").");
 
-        System.out.println("END query 1");
+        System.out.println("\nEND query 1");
         System.out.println("--------------------\n\n");
     }
 

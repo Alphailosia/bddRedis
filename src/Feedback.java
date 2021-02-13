@@ -1,3 +1,6 @@
+import redis.clients.jedis.Jedis;
+
+import java.util.HashMap;
 
 public class Feedback {
 	
@@ -11,12 +14,32 @@ public class Feedback {
 		this.feedback = feedback;
 	}
 
+	public Feedback() {
+
+	}
+
 	@Override
 	public String toString() {
 		return "Product{" +
 				"asin='" + asin + '\'' +
-				", price='" + id + '\'' +
+				", id='" + id + '\'' +
 				", feedback='" + feedback + '\'' +
 				'}';
 	}
+
+	public static void ajoutFeedback(Jedis jedis, String ...strings ) {
+		jedis = new Jedis("localhost");
+		HashMap<String,String> hm = new HashMap<>();
+		hm.put("asin", strings[0]);
+		hm.put("id", strings[1]);
+		hm.put("feedback", strings[2]);
+		jedis.hmset("feedback_"+strings[0]+"_"+strings[1],hm);
+		System.out.println("feedback ajouté");
+	}
+
+	public static void deleteFeedback(Jedis jedis, String id) {
+		jedis.del("feedback_"+id);
+		System.out.println("feedback supprimé");
+	}
+
 }

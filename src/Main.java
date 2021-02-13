@@ -199,18 +199,15 @@ public class Main {
         ///Suppression d'un produit
         p.deleteProduct(jedis, "B000003NUS");
 
+
+        ///Ajout d'un feedback
+        Feedback f = new Feedback();
+        f.ajoutFeedback(jedis, "B005FUKW6M", "17592186053220", "'5.0,Finally found a good dart cabinet without some crap logo on the front, or some fake antiquated dart pub artwork!random words:reccoreckonrclameroadworkrootiragglerestamprussellrhombus'");
+
+        ///Suppression d'un feedback
+        f.deleteFeedback(jedis, "B000003NUS_17592186053220");
     }
 
-    /*public static void ajoutProduct(Jedis jedis, String ...strings ) {
-        HashMap<String,String> hm = new HashMap<>();
-        hm.put("asin", strings[0]);
-        hm.put("title", strings[1]);
-        hm.put("price", strings[2]);
-        hm.put("imgUrl", strings[3]);
-        hm.put("brand", strings[4]);
-        jedis.hmset("product_"+strings[0],hm);
-        System.out.println(strings[0]);
-    }*/
 
     public void importInvoiceXML() {
         try {

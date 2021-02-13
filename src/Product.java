@@ -43,20 +43,15 @@ public class Product {
 		hm.put("imgUrl", strings[3]);
 		hm.put("brand", strings[4]);
 		jedis.hmset("product_"+strings[0],hm);
-		System.out.println(jedis.hmget("product_B000003NUS", "price"));
 		System.out.println("produit ajouté");
 	}
 
 	public static void deleteProduct(Jedis jedis, String id) {
 		jedis.del("product_"+id);
-		System.out.println(jedis.get("product_"+id));
 		System.out.println("produit supprimé");
 	}
 
 	
-
-
-
 
 
 }

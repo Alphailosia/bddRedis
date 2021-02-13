@@ -239,6 +239,7 @@ public class Main {
         o.ajoutOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "10995136278715", "2018-09-22", "133.53", "La liste des produits");
 
         ///Modification d'un order
+        o.updateOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8", "totalPrice", "140.15");
 
         ///Suppression d'un order
         o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");
@@ -254,7 +255,7 @@ public class Main {
         ///Suppression d'un vendor
         v.deleteVendor(jedis, "Nomas");
 
-*/
+
         ///Ajout d'un customer
         Customer c = new Customer();
         c.ajoutCustomer(jedis, "2199025266270", "Mimi", "Cheh", "female", "1989-01-18", "2010-04-06T22:43:26.134+0000","27.129.140.209", "Chrome", "421");
@@ -264,7 +265,7 @@ public class Main {
 
         ///Suppression d'un customer
         c.deleteCustomer(jedis, "2199025266270");
-/*
+
 */
 
 

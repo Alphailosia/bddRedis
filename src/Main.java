@@ -187,41 +187,6 @@ public class Main {
         }
         
         System.out.println("ajout des commandes");*/
-
-    }
-
-    public static ArrayList<HashMap<String,String>> readFile(String file) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader (file));
-        ArrayList<HashMap<String,String>> result = new ArrayList<HashMap<String,String>>();
-        String line = null;
-        StringBuilder stringBuilder = new StringBuilder();
-        String ls = System.getProperty("line.separator");
-        HashMap<String, String> user = new HashMap<String,String>();
-        try {
-            while((line = reader.readLine()) != null) {
-                if (line.equals("]") || line.equals("[")){
-
-                }
-                else if(line.equals("},") || line.equals("}") ){
-                    result.add(user);
-                }
-                else if(line.equals("{")){
-                    user = new HashMap<String,String>();
-                }
-                else{
-                    String[] tab = line.split(":");
-                    if(tab[1].charAt(tab[1].length()-1)==',') {
-                        user.put(tab[0].substring(1,tab[0].length()-1),tab[1].substring(1,tab[1].length()-2));
-                    }
-                    else {
-                        user.put(tab[0].substring(1,tab[0].length()-1),tab[1].substring(1,tab[1].length()-1));
-                    }
-                }
-            }
-            return result;
-        } finally {
-            reader.close();
-        }
     }
 
     public void importInvoiceXML() {

@@ -187,7 +187,27 @@ public class Main {
         }
         
         System.out.println("ajout des commandes");*/
+
+
+        ///Ajout d'un produit
+        Product p = new Product();
+        p.ajoutProduct(jedis, "B000003NUS", "Black Mountain Products Single Band", "81.02", "http://ecx.images-amazon.com/images/I/41g2Pz8o8KL._SX342_.jpg", "chanel");
+
+        ///Suppression d'un produit
+        p.deleteProduct(jedis, "B000003NUS");
+
     }
+
+    /*public static void ajoutProduct(Jedis jedis, String ...strings ) {
+        HashMap<String,String> hm = new HashMap<>();
+        hm.put("asin", strings[0]);
+        hm.put("title", strings[1]);
+        hm.put("price", strings[2]);
+        hm.put("imgUrl", strings[3]);
+        hm.put("brand", strings[4]);
+        jedis.hmset("product_"+strings[0],hm);
+        System.out.println(strings[0]);
+    }*/
 
     public void importInvoiceXML() {
         try {

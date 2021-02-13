@@ -1,4 +1,6 @@
+import redis.clients.jedis.Jedis;
 
+import java.util.HashMap;
 
 public class Product {
 
@@ -14,6 +16,11 @@ public class Product {
 		this.title = title;
 		this.imgUrl = imgUrl;
 		this.brand = brand;
+
+	}
+
+	public Product() {
+
 	}
 
 	@Override
@@ -26,23 +33,30 @@ public class Product {
 				", brand='" + brand + '\'' +
 				'}';
 	}
+
+	public static void ajoutProduct(Jedis jedis, String ...strings ) {
+		jedis = new Jedis("localhost");
+		HashMap<String,String> hm = new HashMap<>();
+		hm.put("asin", strings[0]);
+		hm.put("title", strings[1]);
+		hm.put("price", strings[2]);
+		hm.put("imgUrl", strings[3]);
+		hm.put("brand", strings[4]);
+		jedis.hmset("product_"+strings[0],hm);
+		System.out.println(jedis.hmget("product_B000003NUS", "price"));
+		System.out.println("produit ajoutÃ©");
+	}
+
+	public static void deleteProduct(Jedis jedis, String id) {
+		jedis.del("product_"+id);
+		System.out.println(jedis.get("product_"+id));
+		System.out.println("produit supprimÃ©");
+	}
+
 	
 
-    
-    // fonction ajout avec jedis + les différent paramètre + id (product_lenomquetuveux)
-    
-    /* Partie insertion 
-     * 
-     * 
-     * 
-     * ex product , 
-     * HashMap<String,String> hm = new HashMap<>();
-     * hm.put("asin", "bly");
-     * hm.put("title", "blu");
-     * hm.put("price", "bli");
-     * hm.put("imgUrl", "blo");
-     * hm.put("brand", "bla");
-     * jedis.hmset("product_lenomquetuveux",hm);
-     * 
-     */
+
+
+
+
 }

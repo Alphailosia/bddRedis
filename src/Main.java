@@ -200,7 +200,7 @@ public class Main {
 
         System.out.println("ajout des commandes");
 
-
+*/
         ///Ajout d'un produit
         Product p = new Product();
         p.ajoutProduct(jedis, "B000003NUS", "Black Mountain Products Single Band", "81.02", "http://ecx.images-amazon.com/images/I/41g2Pz8o8KL._SX342_.jpg", "chanel");
@@ -208,7 +208,10 @@ public class Main {
         ///Suppression d'un produit
         p.deleteProduct(jedis, "B000003NUS");
 
+        ///modification d'un produit
+        p.updateProduct(jedis, "B000003NUS", "price", "201");
 
+/*
         ///Ajout d'un feedback
         Feedback f = new Feedback();
         f.ajoutFeedback(jedis, "B005FUKW6M", "17592186053220", "'5.0,Finally found a good dart cabinet without some crap logo on the front, or some fake antiquated dart pub artwork!random words:reccoreckonrclameroadworkrootiragglerestamprussellrhombus'");
@@ -248,7 +251,9 @@ public class Main {
         ///Suppression d'un customer
         c.deleteCustomer(jedis, "2199025266270");
 */
-        
+
+
+
     }
 
 

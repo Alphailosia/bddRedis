@@ -1,6 +1,7 @@
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 public class Vendor {
@@ -44,5 +45,11 @@ public class Vendor {
         System.out.println("vendor supprimé");
     }
 
+    public static void updateVendor(Jedis jedis,String id, String key, String value) {
+        Map<String, String> m = jedis.hgetAll("vendor_"+id);
+        m.put(key, value);
+        jedis.hmset("vendor_"+id, m);
+        System.out.println("vendor modifié");
+    }
 
 }

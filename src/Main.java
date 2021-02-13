@@ -229,6 +229,7 @@ public class Main {
         po.ajoutPost(jedis, "1236950581248", "", "2011-09-15T00:45:16.684+0000", "192.101.113.232", "Internet Explorer", "uz", "bout Armasight Spark CORE Multi-Purpose Night Vision Monocular, # 62 on October 8, 2007, and his career-high doub", "95");
 
         ///Modification d'un post
+        po.updatePost(jedis, "1236950581248", "length", "96");
 
         ///Suppression d'un post
         po.deletePost(jedis, "1236950581248");

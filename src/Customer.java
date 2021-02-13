@@ -2,6 +2,7 @@ import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Customer {
 
@@ -65,6 +66,13 @@ public class Customer {
     public static void deleteCustomer(Jedis jedis, String id) {
         jedis.del("customer_"+id);
         System.out.println("customer supprimé");
+    }
+
+    public static void updateCustomer(Jedis jedis,String id, String key, String value) {
+        Map<String, String> m = jedis.hgetAll("customer_"+id);
+        m.put(key, value);
+        jedis.hmset("customer_"+id, m);
+        System.out.println("customer modifié");
     }
 
 }

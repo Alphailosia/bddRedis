@@ -27,8 +27,11 @@ public class Main {
         //jedis.flushAll();
 
         System.out.println("connexion reussi");
-        m.query1("19791209300458");
-        m.query1("4145");
+
+        //m.query1("19791209300458");
+        //m.query1("4145");
+
+        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
 
 
 /*
@@ -541,7 +544,6 @@ public class Main {
     public void query1(String idCustomer) {
         System.out.println("Query 1 (ID Customer: "+idCustomer+"):");
 
-
         //find profile
         List<String> cust = jedis.hmget("customer_" + idCustomer,
                 "id", "firstName", "lastName", "gender", "birthday", "creationDate", "locationIP", "browserUsed", "place");
@@ -576,7 +578,6 @@ public class Main {
             }
         }
         System.out.println("");
-
 
 
         //find posts
@@ -623,6 +624,26 @@ public class Main {
         System.out.println("--------------------\n\n");
     }
 
+    public void query2(String idProduct, LocalDate d1, LocalDate d2) {
+
+        List<String> personBougthIt = new ArrayList<>();
+        List<Invoice> invoices = getAllInvoices();
+        for(Invoice inv : invoices) {
+            if(dateBetween(inv.orderDate, d1, d2)) {
+                for(Product product : inv.products) {
+                    if(product.asin.equals(idProduct)) personBougthIt.add(inv.personId);
+                }
+            }
+        }
+
+        System.out.println("Persons who bought the product ("+idProduct+"):");
+        for(String personId : personBougthIt) {
+            List<String> cust = jedis.hmget("customer_" + personId, "firstName", "lastName");
+            System.out.println(cust.get(0) + " " + cust.get(1));
+        }
+
+    }
+
     public boolean lastMonth(String date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate aMonth = LocalDate.now();
@@ -630,6 +651,12 @@ public class Main {
         LocalDate today = LocalDate.now();
         LocalDate dateTime = LocalDate.parse(date.substring(0, 10), formatter);
         return (dateTime.compareTo(aMonth) >= 0 && dateTime.compareTo(today) <= 0);
+    }
+
+    public boolean dateBetween(String date, LocalDate d1, LocalDate d2) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate dateTime = LocalDate.parse(date.substring(0, 10), formatter);
+        return (dateTime.compareTo(d1) >= 0 && dateTime.compareTo(d2) <= 0);
     }
 
 }

@@ -235,7 +235,7 @@ public class Main {
         ///Suppression d'un order
         o.deleteOrder(jedis, "016f6a4a-ec18-4885-b1c7-9bf2306c76d8");
 
-*/
+
         ///Ajout d'un vendor
         Vendor v = new Vendor();
         v.ajoutVendor(jedis, "Nomas", "South_Korea", "Sports");
@@ -246,7 +246,7 @@ public class Main {
         ///Suppression d'un vendor
         v.deleteVendor(jedis, "Nomas");
 
-/*
+
         ///Ajout d'un customer
         Customer c = new Customer();
         c.ajoutCustomer(jedis, "2199025266270", "Mimi", "Cheh", "female", "1989-01-18", "2010-04-06T22:43:26.134+0000","27.129.140.209", "Chrome", "421");

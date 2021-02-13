@@ -28,12 +28,11 @@ public class Main {
 
         System.out.println("connexion reussi");
 
-       /* m.query1("19791209300458");
-        m.query1("4145");*/
+        m.query1("19791209300458");
+        m.query1("4145");
+        //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
 
-        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
-
-        m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
+        //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
 
 
 /*
@@ -213,7 +212,7 @@ public class Main {
         ///Suppression d'un produit
         p.deleteProduct(jedis, "B000003NUS");
 
-*/
+
         ///Ajout d'un feedback
         Feedback f = new Feedback();
         f.ajoutFeedback(jedis, "B005FUKW6M", "17592186053220", "'5.0,Finally found a good dart cabinet without some crap logo on the front, or some fake antiquated dart pub artwork!random words:reccoreckonrclameroadworkrootiragglerestamprussellrhombus'");
@@ -224,7 +223,7 @@ public class Main {
         ///Suppression d'un feedback
         f.deleteFeedback(jedis, "B005FUKW6M_17592186053220");
 
-/*
+
         ///Ajout d'un post
         Post po = new Post();
         po.ajoutPost(jedis, "1236950581248", "", "2011-09-15T00:45:16.684+0000", "192.101.113.232", "Internet Explorer", "uz", "bout Armasight Spark CORE Multi-Purpose Night Vision Monocular, # 62 on October 8, 2007, and his career-high doub", "95");
@@ -539,6 +538,7 @@ public class Main {
         return result;
     }
 
+
     public List<Post> getAllPosts() {
         ScanParams scanParams = new ScanParams().match("*").count(1000000);
         List<String> results = jedis.scan("0", scanParams).getResult();
@@ -553,7 +553,9 @@ public class Main {
         return posts;
     }
 
-    /*public void query1(String idCustomer) {
+
+    public void query1(String idCustomer) {
+
         System.out.println("Query 1 (ID Customer: "+idCustomer+"):");
 
         //find profile
@@ -631,11 +633,33 @@ public class Main {
             }
         }
         System.out.println("The category in which he has bought the largest number of product: "+highest + " (" + highestNumber + ").");
+        System.out.println("");
+
+        //Tags
+        HashMap<String, Integer> tags = new HashMap<>();
+        for(int i=0; i<postsIds.size();i++) {
+            List<String> res = jedis.hmget("post_hasTag_tag_"+postsIds.get(i), "Post.id", "Tag.id");
+            String tag = res.get(1);
+            if(tag != null) {
+                if(tags.containsKey(tag)) tags.put(tag, tags.get(tag) + 1);
+                else tags.put(tag, 1);
+            }
+        }
+        String highestTag = "";
+        int highestTagNumber = 0;
+        for(Map.Entry<String, Integer> entry : tags.entrySet()) {
+            if(entry.getValue() > highestTagNumber) {
+                highestTag = entry.getKey();
+                highestTagNumber = entry.getValue();
+            }
+        }
+        System.out.println("The tag which he has engaged the greatest times in the posts: "+highestTag + " (" + highestTagNumber + ").");
+
 
         System.out.println("\nEND query 1");
         System.out.println("--------------------\n\n");
     }
-*/
+
     public void query2(String idProduct, LocalDate d1, LocalDate d2) {
         System.out.println("Query 2 (ID product: "+idProduct+"):");
 
@@ -686,6 +710,10 @@ public class Main {
 
         System.out.println("\nEND query 3");
         System.out.println("--------------------\n\n");
+    }
+
+    public void query5() {
+
     }
 
     public boolean lastMonth(String date) {

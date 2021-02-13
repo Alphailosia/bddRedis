@@ -49,5 +49,5 @@ public class Feedback {
 		jedis.hmset("feedback_"+id, m);
 		System.out.println("feedback modifié");
 	}
-	
+
 }

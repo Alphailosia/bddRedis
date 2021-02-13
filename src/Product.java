@@ -1,6 +1,7 @@
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Product {
 
@@ -16,7 +17,6 @@ public class Product {
 		this.title = title;
 		this.imgUrl = imgUrl;
 		this.brand = brand;
-
 	}
 
 	public Product() {
@@ -51,7 +51,12 @@ public class Product {
 		System.out.println("produit supprimé");
 	}
 
-	
+	public static void updateProduct(Jedis jedis,String id, String key, String value) {
+		Map<String, String> m = jedis.hgetAll("product_"+id);
+		m.put(key, value);
+		jedis.hmset("product_"+id, m);
+		System.out.println("produit modifié");
+	}
 
 
 }

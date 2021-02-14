@@ -30,20 +30,20 @@ public class Main {
         //Queries
         
 
-        //m.query1("8796093025356");
-        //m.query1("10995116280191");
-        //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
-        //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
-        //m.query4();
-        //m.query5("10995116283190", "Pirma");
-        //m.query6("4398046519185", "4398046519477");
-        //m.query7("Penalty_(sports_manufacturer)");
-        //m.query8("Signia_(sportswear)", "2020");
-        //m.query9();
-        //m.query10();
+        m.query1("8796093025356");
+        m.query1("10995116280191");
+        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
+        m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
+        m.query4();
+        m.query5("10995116283190", "Pirma");
+        m.query6("4398046519185", "4398046519477");
+        m.query7("Penalty_(sports_manufacturer)");
+        m.query8("Signia_(sportswear)", "2020");
+        m.query9();
+        m.query10();
 
         // Ajouts, modifications et supressions
-        //m.addMutDel();
+        m.addMutDel();
 
     }
 

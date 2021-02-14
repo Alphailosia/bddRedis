@@ -35,6 +35,7 @@ public class Main {
         //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
         //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
         //m.query4();
+        //m.query5("10995116283190", "Pirma");
         //m.query6("4398046519185", "4398046519477");
         //m.query7("Penalty_(sports_manufacturer)");
         //m.query8("Signia_(sportswear)", "2020");
@@ -235,6 +236,7 @@ public class Main {
         ///Suppression d'un customer
         c.deleteCustomer(jedis, "2199025266270");
 
+
         ///Ajout d'un invoice
         Invoice i = new Invoice();
         i.ajoutInvoice(jedis, "6711da51-dee6-452a-a7b7-f79a1cbb9437", "10995146278715", "2020-09-01", "171", "[{6485,B000HIE4WC,Topeak Dual Touch Bike Storage Stand, 51, Derbi},[8512,B000HJE4WC,Sportlock Leatherlock, 120, Chanel}]");
@@ -244,6 +246,51 @@ public class Main {
 
         ///Suppression d'un invoice
         i.deleteInvoice(jedis, "6711da51-dee6-452a-a7b7-f79a1cbb9437");
+
+
+        ///Ajout d'un person_hasTag_tag
+        Person_hasTag_tag pt = new Person_hasTag_tag();
+        pt.ajoutPerson_hasTag_tag(jedis, "1786706395123", "3441");
+
+        ///Modification d'un person_hasTag_tag
+        pt.updatePerson_hasTag_tag(jedis, "1786706395123", "Tag.id", "3442");
+
+        ///Suppression d'un person_hasTag_tag
+        pt.deletePerson_hasTag_tag(jedis, "1786706395123");
+
+
+        ///Ajout d'un person_hasInterest_tag
+        Person_hasInterest_tag pi = new Person_hasInterest_tag();
+        pi.ajoutPerson_hasInterest_tag(jedis, "2526", "1589");
+
+        ///Modification d'un person_hasInterest_tag
+        pi.updatePerson_hasInterest_tag(jedis, "2526", "Tag.id", "1588");
+
+        ///Suppression d'un person_hasInterest_tag
+        pi.deletePerson_hasInterest_tag(jedis, "2526");
+
+
+        ///Ajout d'un Person_knows_person
+        Person_knows_person pp = new Person_knows_person();
+        pp.ajoutPerson_knows_person(jedis, "2528", "5412", "2010-05-23T06:12:02.793+0000");
+
+        ///Modification d'un Person_knows_person
+        pp.updatePerson_knows_person(jedis, "2528_5412", "creationDate", "2011-05-23T06:12:02.793+0000");
+
+        ///Suppression d'un Person_knows_person
+        pp.deletePerson_knows_person(jedis, "2528_5412");
+
+
+        ///Ajout d'un Post_hasCreator_person
+        Post_hasCreator_person pc = new Post_hasCreator_person();
+        pc.ajoutPost_hasCreator_person(jedis, "1236950581488", "5412");
+
+        ///Modification d'un Post_hasCreator_person
+        pc.updatePost_hasCreator_person(jedis, "1236950581488", "Person.id", "5413");
+
+        ///Suppression d'un Post_hasCreator_person
+        pc.deletePost_hasCreator_person(jedis, "1236950581488");
+
     }
 
     public void importInvoiceXML() {
@@ -778,7 +825,30 @@ public class Main {
         System.out.println("--------------------\n\n");
     }
 
-    public void query5() {
+    public void query5(String idCustomer, String category) {
+        System.out.println("Query 5 (ID idCustomer: "+idCustomer+", category: "+category+"):\n");
+
+        List<Product> products = new ArrayList<>();
+        List<Invoice> invoices = getAllInvoices();
+        for(Invoice invoice : invoices) {
+            if (invoice.personId.equals(idCustomer)) {
+                for(Product product : invoice.products) {
+                    if(product.brand.equals(category)) products.add(product);
+                }
+            }
+        }
+
+        ScanParams scanParams = new ScanParams().match("*").count(1000000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        System.out.println("5 stars feedback for the products bought by "+idCustomer+" of category "+category+" :");
+        for(String r : results) {
+            for(Product product : products) {
+                if(r.contains("feedback_"+product.asin)) {
+                    List<String> res = jedis.hmget(r, "feedback");
+                    if(res.get(0).charAt(1) == '5') System.out.println("- (5/5) " + res.get(0).substring(5, res.get(0).length() - 1));
+                }
+            }
+        }
 
     }
 

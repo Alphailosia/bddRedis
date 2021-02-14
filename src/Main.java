@@ -22,13 +22,13 @@ public class Main {
         System.out.println("Connexion réussi !");
 
         //Reset Database
-        //m.jedis.flushAll();
+        m.jedis.flushAll();
 
         //Import des fichiers dans la database
-        //m.importAll();
+        m.importAll();
 
         //Queries
-        m.query9();
+        
 
         //m.query1("8796093025356");
         //m.query1("10995116280191");
@@ -39,6 +39,7 @@ public class Main {
         //m.query6("4398046519185", "4398046519477");
         //m.query7("Penalty_(sports_manufacturer)");
         //m.query8("Signia_(sportswear)", "2020");
+        //m.query9();
         //m.query10();
 
         // Ajouts, modifications et supressions
@@ -91,7 +92,7 @@ public class Main {
             reader.close();
         }
         System.out.println("Marques ajoutées dans les produits");
-
+		
 
         // ajout des customers
         list = readCsv(lien + "customer/person_0_0.csv","\\|");
@@ -100,7 +101,7 @@ public class Main {
 		}
      	System.out.println("Customers ajoutés");
 
-
+		
      	// ajout des feedback
         list = readCsvFeedback(lien + "feedback/Feedback.csv","\\|");
      	for(int i=0;i<list.size();i++) {
@@ -108,7 +109,7 @@ public class Main {
 		}
      	System.out.println("Feedback ajoutés");
      	
-
+		
      	// ajout des vendor
         list = readCsv(lien + "vendor/Vendor.csv",",");
         for(int i=0;i<list.size();i++) {
@@ -131,7 +132,7 @@ public class Main {
             jedis.hmset("person_knows_person_"+list.get(i).get("Person.id")+list.get(i).get("Person2.id"),list.get(i) );
         }
         System.out.println("person_knows_person ajoutés");
-
+		
 
         // ajout des post
         list = readCsv(lien + "socialNetwork/post_0_0.csv","\\|");
@@ -139,7 +140,7 @@ public class Main {
             jedis.hmset("post_"+list.get(i).get("id"),list.get(i) );
         }
         System.out.println("Posts ajoutés");
-
+		
 
         // ajout des post_hasCreator_person
         list = readCsv(lien + "socialNetwork/post_hasCreator_person_0_0.csv","\\|");
@@ -148,7 +149,7 @@ public class Main {
         }
         System.out.println("post_hasCreator_person ajoutés");
 
-
+		
         // ajout des post_hasTag_tag
         list = readCsv(lien + "socialNetwork/post_hasTag_tag_0_0.csv","\\|");
         for(int i=0;i<list.size();i++) {
@@ -156,7 +157,7 @@ public class Main {
         }
         System.out.println("post_hasTag_tag ajoutés");
 
-        
+       
         // ajout des commandes
         list = readJson(lien+"order/Order.json");
         for(int i=0;i<list.size();i++) {
@@ -494,6 +495,7 @@ public class Main {
 					for(String s : line.split(splitter)) {
 						key.add(s);
 					}
+					System.out.println(key);
 					count++;
 				}
 				else{
@@ -982,6 +984,187 @@ public class Main {
         System.out.println("--------------------\n\n");
     }
 
+    public void query9() {
+        System.out.println("=====================================");
+    	System.out.println("Query 9:");
+    	// 3 plus grandes marques par pays
+    	
+    	// parcourir les marques et les triés par pays
+    	ScanParams scanParams = new ScanParams().match("*").count(80000000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        
+        HashMap<String, String> hmBC = new HashMap<String, String>();
+        for(String s : results) {
+        	if(s.contains("vendor_")) {
+        		List<String> info = jedis.hmget(s, "Vendor","Country");
+        		hmBC.put(info.get(0),info.get(1));
+        	}
+        }
+        
+        // parcour des order pour voir quel marque a le plus vendus
+        HashMap<String,Integer> hmCountBrand  = new  HashMap<String, Integer>();
+        HashMap<String,HashMap<String,Integer>> hmGenderBrand = new HashMap<String, HashMap<String,Integer>>();
+        HashMap<String, HashMap<String,String>> hmPersonIdBrand = new HashMap<String,HashMap<String,String>>();
+        for(String s : results) {
+        	if(s.contains("order_")) {
+        		
+        		String products = jedis.hgetAll(s).get("Orderline");
+        		String idPerson = jedis.hgetAll(s).get("PersonId").substring(1,jedis.hgetAll(s).get("PersonId").length()-1);
+        		String genre = jedis.hmget("customer_"+idPerson,"gender").get(0);
+        		HashMap<String,String> hmGenreId = new HashMap<String, String>();
+        		hmGenreId.put(idPerson, genre);
+        		while(products.length()!=0) {
+        			int indexTab = products.indexOf("{");
+                    int finTab = products.indexOf("}");
+                    
+                    String p = products.substring(indexTab+1, finTab);
+                    String[] tab = p.split(",");
+                    String[] tab2 = tab[tab.length-1].split(":");
+                    
+                    if(hmGenderBrand.get(tab2[1].substring(1, tab2[1].length()-1))==null) {
+                    	HashMap<String,Integer> hmGenderCount = new HashMap<String, Integer>();
+                        hmGenderCount.put("male", 0);
+                        hmGenderCount.put("female", 0);
+                    	hmGenderBrand.put(tab2[1].substring(1, tab2[1].length()-1), hmGenderCount);
+                    	int count = hmGenderBrand.get(tab2[1].substring(1, tab2[1].length()-1)).get(genre)+1;
+                    	hmGenderBrand.get(tab2[1].substring(1, tab2[1].length()-1)).put(genre,count);
+                    }
+                    else {
+                    	int count = hmGenderBrand.get(tab2[1].substring(1, tab2[1].length()-1)).get(genre)+1;
+                    	
+                    	hmGenderBrand.get(tab2[1].substring(1, tab2[1].length()-1)).put(genre,count);
+                    }
+                    
+                    
+                    hmPersonIdBrand.put(tab2[1].substring(1, tab2[1].length()-1),hmGenreId);
+                    if(hmCountBrand.get(tab2[1].substring(1, tab2[1].length()-1))!=null) {
+                    	int count = hmCountBrand.get(tab2[1].substring(1, tab2[1].length()-1))+1;
+                    	hmCountBrand.put(tab2[1].substring(1, tab2[1].length()-1), count);
+                    }
+                    else {
+                    	hmCountBrand.put(tab2[1].substring(1, tab2[1].length()-1), 1);
+                    }
+                    
+                    if(finTab==products.length()-1) {
+                    	products="";
+                    }
+                    else {
+                    	products = products.substring(finTab+2);
+                    }
+                    
+                    
+        		}
+        	}
+        }
+        
+        
+        // trier en fonction du pays et du nb de ventes
+        HashMap<String, ArrayList<HashMap<Integer,String>>> hmCountryBrandCount = new HashMap<String, ArrayList<HashMap<Integer,String>>>();
+        for(String s : hmBC.keySet()) {
+        	String pays = hmBC.get(s);
+        	Integer sales = hmCountBrand.get(s);
+        	
+        	if(hmCountryBrandCount.get(pays)==null) {
+        		ArrayList<HashMap<Integer,String>> alBC =  new ArrayList<HashMap<Integer,String>>();
+        		HashMap<Integer,String> hmBrandCount = new HashMap<Integer,String>();
+        		hmBrandCount.put(sales, s);
+        		alBC.add(hmBrandCount);
+        		hmCountryBrandCount.put(pays, alBC);
+        	}
+        	else {
+        		ArrayList<HashMap<Integer,String>> alBC = hmCountryBrandCount.get(pays); 
+        		HashMap<Integer,String> hmBrandCount = new HashMap<Integer, String>();
+        		hmBrandCount.put(sales,s);
+        		alBC.add(hmBrandCount);
+        		hmCountryBrandCount.put(pays, alBC);
+        	}   	
+        	
+        }
+        
+        for(String s : hmCountryBrandCount.keySet()) {
+        	ArrayList<HashMap<Integer,String>> alBC = hmCountryBrandCount.get(s); 
+        	ArrayList<Integer> ventes = new ArrayList<>();
+        	for(HashMap<Integer,String> hm : alBC) {
+        		for(Integer i : hm.keySet()) {
+        			if(i==null) {
+        				ventes.add(0);
+        			}
+        			else {
+        				ventes.add(i);
+        			}
+        		}
+        	}
+        	
+        	Collections.sort(ventes,Collections.reverseOrder());
+        	ArrayList<HashMap<Integer,String>> alBCTrie = new ArrayList<HashMap<Integer,String>>();
+        	int count=0;
+        	for(Integer i : ventes) {
+        		for(HashMap<Integer,String> hm : alBC) {
+            		if(hm.get(i)!=null) {
+            			alBCTrie.add(hm);
+            			count++;
+            		}
+            	}
+
+    			if(count==3) {
+    				break;
+    			}
+        	}
+        	
+        	hmCountryBrandCount.put(s, alBCTrie);
+        	
+        }
+        
+        for(String s : hmCountryBrandCount.keySet()) {
+        	ArrayList<HashMap<Integer,String>> moui = hmCountryBrandCount.get(s);
+        	System.out.println(s+" : "+moui);
+        }
+        
+    	// comparer clientèle masculine et féminine
+    	
+    		// parcourir les order et prenre le personId
+        for(String s : hmCountryBrandCount.keySet()) {
+        	ArrayList<HashMap<Integer,String>> moui = hmCountryBrandCount.get(s);
+        	for(HashMap<Integer,String> hm : moui) {
+        		for(Integer i : hm.keySet()) {
+        			if(hmGenderBrand.get(hm.get(i)).get("male")<hmGenderBrand.get(hm.get(i)).get("female")) {
+        				System.out.println("La marque "+hm.get(i)+" à plus de client fille que de client garçon \n voici leurs dernier post");
+        				for(String b : hmPersonIdBrand.get(hm.get(i)).keySet()) {
+        					if(hmPersonIdBrand.get(hm.get(i)).get(b).equals("female")) {
+        						for(String res : results) {
+        							if(res.contains("hasCreator")) {
+        								if(jedis.hgetAll(res).get("Person.id").equals(b)) {
+        									System.out.println(jedis.hgetAll(jedis.hgetAll(res).get("Post.id")));
+        								}
+        							}
+        						}
+        					}
+        				}
+        			}
+        			else {
+        				System.out.println("La marque "+hm.get(i)+" à plus de client garçon que de client fille");
+        				for(String b : hmPersonIdBrand.get(hm.get(i)).keySet()) {
+        					if(hmPersonIdBrand.get(hm.get(i)).get(b).equals("male")) {
+        						for(String res : results) {
+        							if(res.contains("hasCreator")) {
+        								if(jedis.hgetAll(res).get("Person.id").equals(b)) {
+        									System.out.println(jedis.hgetAll(jedis.hgetAll(res).get("Post.id")));
+        								}
+        							}
+        						}
+        					}
+        				}
+        			}
+        		}
+        	}
+        }  
+    	
+        
+        System.out.println("Fin query 9");
+        System.out.println("=====================================");
+    	
+    }
+    
     public void query10() {
         System.out.println("Query 10 : \n");
 
@@ -1084,76 +1267,5 @@ public class Main {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate dateTime = LocalDate.parse(date.substring(0, 10), formatter);
         return (dateTime.compareTo(d1) >= 0 && dateTime.compareTo(d2) <= 0);
-    }
-
-    public void query9() {
-    	System.out.println("Query 9:");
-    	// 3 plus grandes marques par pays
-    	
-    	// parcourir les marques et les triés par pays
-    	ScanParams scanParams = new ScanParams().match("*").count(8000000);
-        List<String> results = jedis.scan("0", scanParams).getResult();
-        
-        HashMap<String, String> hmBC = new HashMap<String, String>();
-        for(String s : results) {
-        	if(s.contains("vendor_")) {
-        		List<String> info = jedis.hmget(s, "Vendor","Country");
-        		hmBC.put(info.get(0),info.get(1));
-        	}
-        }
-        
-        // parcour des order pour voir quel marque a le plus vendus
-        HashMap<String,Integer> hmCountBrand  = new  HashMap<String, Integer>();
-        for(String s : results) {
-        	if(s.contains("order_")) {
-        		
-        		String products = jedis.hgetAll(s).get("Orderline");
-        		
-        		while(products.length()!=0) {
-        			int indexTab = products.indexOf("{");
-                    int finTab = products.indexOf("}");
-                    
-                    String p = products.substring(indexTab+1, finTab);
-                    String[] tab = p.split(",");
-                    String[] tab2 = tab[tab.length-1].split(":");
-                    
-                    if(hmCountBrand.get(tab2[1].substring(1, tab2[1].length()-1))!=null) {
-                    	int count = hmCountBrand.get(tab2[1].substring(1, tab2[1].length()-1))+1;
-                    	hmCountBrand.put(tab2[1].substring(1, tab2[1].length()-1), count);
-                    }
-                    else {
-                    	hmCountBrand.put(tab2[1].substring(1, tab2[1].length()-1), 1);
-                    }
-                    
-                    if(finTab==products.length()-1) {
-                    	products="";
-                    }
-                    else {
-                    	products = products.substring(finTab+2);
-                    }
-        		}
-        	}
-        }
-        
-        
-        // trier en fonction du pays et du 
-        for(String s : hmBC.keySet()) {
-        	String pays = hmBC.get(s);
-        	Integer sales = hmCountBrand.get(s);
-        	
-        }
-    	
-    	// comparer clientèle masculine et féminine
-    	
-    		// parcourir les order et prenre le personId
-    		// trouver dans la bdd le genre de la personne en fontion de ca puis incrémenter le dans la marque
-    		// comprarer s'il y a plus de fille ou de garcon
-    	
-    	// trouver les post les plus récent pour chaque
-    		
-    		// prendre tous les clients de genre le plus present dans la marque et mettre leur post le plus récent
-        
-        System.out.println("Fin query 9");
-    	
     }
 }

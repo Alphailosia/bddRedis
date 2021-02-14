@@ -36,6 +36,7 @@ public class Main {
         //m.query4();
         //m.query6("4398046519185", "4398046519477");
         //m.query7("Penalty_(sports_manufacturer)");
+        //m.query8("Signia_(sportswear)", "2020");
 
         // Ajouts, modifications et supressions
         //m.addMutDel();
@@ -895,6 +896,32 @@ public class Main {
         }
 
         System.out.println("\nEND query 7");
+        System.out.println("--------------------\n\n");
+    }
+
+    public void query8(String category, String year) {
+        System.out.println("Query 8 : \n");
+
+        //get total sales amount for each product
+        HashMap<String, Integer> nbSaleProduct = new HashMap<>();
+        List<Invoice> invoices = getAllInvoices();
+        for(Invoice invoice : invoices) {
+            if(invoice.orderDate.substring(0, 4).equals(year)) {
+                for(Product product : invoice.products) {
+                    if(product.brand.equals(category)) {
+                        if(nbSaleProduct.containsKey(product.asin)) nbSaleProduct.put(product.asin, nbSaleProduct.get(product.asin) + 1);
+                        else nbSaleProduct.put(product.asin, 1);
+                    }
+                }
+            }
+        }
+
+        System.out.println("Total sale of each product of "+category+" in "+year+" :");
+        for(Map.Entry<String, Integer> entry : nbSaleProduct.entrySet()) {
+            System.out.println("- " + entry.getKey() + ": " + entry.getValue() + " sales");
+        }
+
+        System.out.println("\nEND query 8");
         System.out.println("--------------------\n\n");
     }
 

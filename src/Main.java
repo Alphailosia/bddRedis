@@ -1,5 +1,3 @@
-
-
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 import redis.clients.jedis.Jedis;
@@ -7,7 +5,6 @@ import redis.clients.jedis.ScanParams;
 
 import java.io.*;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -22,55 +19,57 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Main m = new Main();
-        Jedis jedis = m.jedis;
-        String lien = m.lien;
-        //jedis.flushAll();
+        System.out.println("Connexion réussi !");
 
-        System.out.println("connexion reussi");
-        /*
+        //Reset Database
+        m.jedis.flushAll();
+
+        //Import des fichiers dans la database
+        m.importAll();
+
+        //Queries
         m.query1("19791209300458");
         m.query1("4145");
-        //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
-        //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
-        //m.query6("4398046516033", "4398046516051");
+        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
+        m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
+        m.query4();
+        m.query6("4398046516033", "4398046516051");
 
+        // Ajouts, modifications et supressions
+        m.addMutDel();
 
+    }
+
+    public void importAll() throws IOException {
+
+        System.out.println("Importations ...");
+
+        // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
+        ArrayList<HashMap<String,String>> list = new ArrayList<HashMap<String,String>>();
 
         // ajout des invoices
-        m.importInvoiceXML();
-        System.out.println("ajout des invoices");
-        //m.getAllInvoices();
-        
-        */
-        // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
-     	ArrayList<HashMap<String,String>> listUser = new ArrayList<HashMap<String,String>>();
-     	
-     	/*
-     	listUser = readCsvProduit(lien + "product/Product.csv",",");
-     	
-     	for(int i=0;i<listUser.size();i++) {
+        importInvoiceXML();
+        System.out.println("Invoices ajoutés");
 
-			jedis.hmset("product_"+listUser.get(i).get("asin"),listUser.get(i) );
-
+        // ajout des products
+        list = readCsvProduit(lien + "product/Product.csv",",");
+     	for(int i=0;i<list.size();i++) {
+			jedis.hmset("product_"+list.get(i).get("asin"),list.get(i) );
 		}
-     	
-     	System.out.println("ajout des produits");
+     	System.out.println("Produits ajoutés");
 
 
         // ajout des marques
-
         BufferedReader reader = new BufferedReader(new FileReader (lien+"product/BrandByProduct.csv"));
         String line = null;
-        StringBuilder stringBuilder = new StringBuilder();
-        String ls = System.getProperty("line.separator");
         try {
             while((line = reader.readLine()) != null) {
                 String[] tab = line.split(",");
-                
+
                 tab[1] =  tab[1].replaceAll("B005UND3CY","B00168NK9S");
                 tab[1] =  tab[1].replaceAll("B007M2S52E","B00I1WVRBK");
                 tab[1] =  tab[1].replaceAll("B000UUTAZQ","B002APDC0I");
-                
+
                 List<String> marque = jedis.hmget("product_"+tab[1], "asin","title", "price", "imgUrl");
                 marque.add(tab[0]);
                 HashMap<String, String> hm = new HashMap<>();
@@ -79,136 +78,92 @@ public class Main {
                 hm.put("price", marque.get(2));
                 hm.put("imgUrl", marque.get(3));
                 hm.put("brand", marque.get(4));
-                
+
                 jedis.hmset("product_"+tab[1], hm);
             }
         } finally {
             reader.close();
         }
+        System.out.println("Marques ajoutées dans les produits");
 
-        System.out.println("ajout des marques dans les produits");
 
-        
         // ajout des customers
-     	
-        listUser = readCsv(lien + "customer/person_0_0.csv","\\|");
-     	
-     	for(int i=0;i<listUser.size();i++) {
-
-			jedis.hmset("customer_"+listUser.get(i).get("id"),listUser.get(i) );
-
+        list = readCsv(lien + "customer/person_0_0.csv","\\|");
+     	for(int i=0;i<list.size();i++) {
+			jedis.hmset("customer_"+list.get(i).get("id"),list.get(i) );
 		}
-     	
-     	System.out.println("ajout des customers");
-     	
+     	System.out.println("Customers ajoutés");
+
 
      	// ajout des feedback
-
-        listUser = readCsvFeedback(lien + "feedback/Feedback.csv","\\|");
-     	
-     	for(int i=0;i<listUser.size();i++) {
-
-			jedis.hmset("feedback_"+listUser.get(i).get("asin")+"_"+listUser.get(i).get("id"),listUser.get(i) );
-
+        list = readCsvFeedback(lien + "feedback/Feedback.csv","\\|");
+     	for(int i=0;i<list.size();i++) {
+			jedis.hmset("feedback_"+list.get(i).get("asin")+"_"+list.get(i).get("id"),list.get(i) );
 		}
-     	
-     	System.out.println("ajout des feedback");
+     	System.out.println("Feedback ajoutés");
 
 
      	// ajout des vendor
-
-        listUser = readCsv(lien + "vendor/Vendor.csv",",");
-
-        for(int i=0;i<listUser.size();i++) {
-
-            jedis.hmset("vendor_"+listUser.get(i).get("Vendor"),listUser.get(i) );
-
+        list = readCsv(lien + "vendor/Vendor.csv",",");
+        for(int i=0;i<list.size();i++) {
+            jedis.hmset("vendor_"+list.get(i).get("Vendor"),list.get(i) );
         }
-
-        System.out.println("ajout des vendor");
+        System.out.println("Vendors ajoutés");
 
 
         // ajout des person_hasInterest_tag
-
-        listUser = readCsv(lien + "socialNetwork/person_hasInterest_tag_0_0.csv","\\|");
-
-        for(int i=0;i<listUser.size();i++) {
-
-            jedis.hmset("person_hasInterest_tag_"+listUser.get(i).get("Person.id"),listUser.get(i) );
-
+        list = readCsv(lien + "socialNetwork/person_hasInterest_tag_0_0.csv","\\|");
+        for(int i=0;i<list.size();i++) {
+            jedis.hmset("person_hasInterest_tag_"+list.get(i).get("Person.id"),list.get(i) );
         }
-
-        System.out.println("ajout des person_hasInterest_tag");
+        System.out.println("person_hasInterest_tag ajoutés");
 
 
         // ajout des person_knows_person
-
-
-        listUser = readCsvKnows(lien + "socialNetwork/person_knows_person_0_0.csv","\\|");
-
-        for(int i=0;i<listUser.size();i++) {
-            jedis.hmset("person_knows_person_"+listUser.get(i).get("PersonId1")+listUser.get(i).get("PersonId2"),listUser.get(i) );
+        list = readCsvKnows(lien + "socialNetwork/person_knows_person_0_0.csv","\\|");
+        for(int i=0;i<list.size();i++) {
+            jedis.hmset("person_knows_person_"+list.get(i).get("Person.id")+list.get(i).get("Person2.id"),list.get(i) );
         }
-
-        System.out.println("ajout des person_knows_person");
+        System.out.println("person_knows_person ajoutés");
 
 
         // ajout des post
-
-        listUser = readCsv(lien + "socialNetwork/post_0_0.csv","\\|");
-
-        for(int i=0;i<listUser.size();i++) {
-
-            jedis.hmset("post_"+listUser.get(i).get("id"),listUser.get(i) );
-
+        list = readCsv(lien + "socialNetwork/post_0_0.csv","\\|");
+        for(int i=0;i<list.size();i++) {
+            jedis.hmset("post_"+list.get(i).get("id"),list.get(i) );
         }
-
-        System.out.println("ajout des post");
+        System.out.println("Posts ajoutés");
 
 
         // ajout des post_hasCreator_person
-
-        listUser = readCsv(lien + "socialNetwork/post_hasCreator_person_0_0.csv","\\|");
-
-        for(int i=0;i<listUser.size();i++) {
-
-            jedis.hmset("post_hasCreator_person_"+listUser.get(i).get("Post.id"),listUser.get(i) );
-
+        list = readCsv(lien + "socialNetwork/post_hasCreator_person_0_0.csv","\\|");
+        for(int i=0;i<list.size();i++) {
+            jedis.hmset("post_hasCreator_person_"+list.get(i).get("Post.id"),list.get(i) );
         }
-
-        System.out.println("ajout des post_hasCreator_person");
+        System.out.println("post_hasCreator_person ajoutés");
 
 
         // ajout des post_hasTag_tag
-
-        listUser = readCsv(lien + "socialNetwork/post_hasTag_tag_0_0.csv","\\|");
-
-        for(int i=0;i<listUser.size();i++) {
-
-            jedis.hmset("post_hasTag_tag_"+listUser.get(i).get("Post.id"),listUser.get(i) );
-
+        list = readCsv(lien + "socialNetwork/post_hasTag_tag_0_0.csv","\\|");
+        for(int i=0;i<list.size();i++) {
+            jedis.hmset("post_hasTag_tag_"+list.get(i).get("Post.id"),list.get(i) );
         }
+        System.out.println("post_hasTag_tag ajoutés");
 
-        System.out.println("ajout des post_hasTag_tag");
 
-        
         // ajout des commandes
-
-        ArrayList<HashMap<String,String>> listOskour = readJson(lien+"order/Order.json");
-        
-        for(int i=0;i<listOskour.size();i++) {
-
-            jedis.hmset("order_"+listOskour.get(i).get("OrderId"),listOskour.get(i) );
-
+        list = readJson(lien+"order/Order.json");
+        for(int i=0;i<list.size();i++) {
+            jedis.hmset("order_"+list.get(i).get("OrderId"),list.get(i) );
         }
-        
-        m.query4();
+        System.out.println("Commandes ajoutés");
 
-        m.query1("5296");
-        System.out.println("ajout des commandes");
+        System.out.println("FIN des importations");
+        System.out.println("--------------------\n\n");
 
-        System.out.println("ajout des commandes");
+    }
 
+    public void addMutDel() {
 
         ///Ajout d'un produit
         Product p = new Product();
@@ -284,7 +239,6 @@ public class Main {
 
         ///Suppression d'un invoice
         i.deleteInvoice(jedis, "6711da51-dee6-452a-a7b7-f79a1cbb9437");
-*/
     }
 
     public void importInvoiceXML() {
@@ -583,7 +537,6 @@ public class Main {
         return result;
     }
 
-
     public List<Post> getAllPosts() {
         ScanParams scanParams = new ScanParams().match("*").count(1000000);
         List<String> results = jedis.scan("0", scanParams).getResult();
@@ -597,7 +550,6 @@ public class Main {
         }
         return posts;
     }
-
 
     public void query1(String idCustomer) {
 
@@ -758,7 +710,8 @@ public class Main {
     }
 
     public void query4() throws IOException {
-    	
+        System.out.println("Query 4:");
+
     	// Trouver les 2 personnes qui ont d�pens� le plus
     	
     	ArrayList<String> id = new ArrayList<>();
@@ -835,7 +788,8 @@ public class Main {
         }
         
         System.out.println("L'utilisateur "+tab2[0]+" et  "+tab2[1]+" ont "+commonFriend.size()+" amis en commun !!!!!!!");
-        
+        System.out.println("\nEND query 4");
+        System.out.println("--------------------\n\n");
     }
 
     public void query5() {
@@ -844,7 +798,7 @@ public class Main {
 
     //TODO: To continue
     public void query6(String idCustomer1, String idCustomer2) {
-
+        System.out.println("Query 6:");
         ScanParams scanParams = new ScanParams().match("*").count(100000);
         List<String> results = jedis.scan("0", scanParams).getResult();
 
@@ -853,10 +807,10 @@ public class Main {
         for(int i=0; i<results.size();i++) {
 
             if(results.get(i).contains("person_knows_person_"+idCustomer1)) {
-                List<String> res = jedis.hmget(results.get(i), "PersonId1", "PersonId2");
+                List<String> res = jedis.hmget(results.get(i), "Person.id", "Person2.id");
                 if(res.get(1) != null) friends1.add(res.get(1));
             } else if(results.get(i).contains("person_knows_person_"+idCustomer2)) {
-                List<String> res = jedis.hmget(results.get(i), "PersonId1", "PersonId2");
+                List<String> res = jedis.hmget(results.get(i), "Person.id", "Person2.id");
                 if(res.get(1) != null) friends2.add(res.get(1));
             }
         }
@@ -872,6 +826,8 @@ public class Main {
         System.out.println("communs: ");
         System.out.println(communs);
 
+        System.out.println("\nEND query 6");
+        System.out.println("--------------------\n\n");
     }
 
     public boolean lastMonth(String date) {

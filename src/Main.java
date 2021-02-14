@@ -37,6 +37,7 @@ public class Main {
         //m.query6("4398046519185", "4398046519477");
         //m.query7("Penalty_(sports_manufacturer)");
         //m.query8("Signia_(sportswear)", "2020");
+        //m.query10();
 
         // Ajouts, modifications et supressions
         //m.addMutDel();
@@ -541,7 +542,7 @@ public class Main {
     }
 
     public List<Post> getAllPosts() {
-        ScanParams scanParams = new ScanParams().match("*").count(2000000);
+        ScanParams scanParams = new ScanParams().match("*").count(300000);
         List<String> results = jedis.scan("0", scanParams).getResult();
         List<Post> posts = new ArrayList<>();
         for(int i=0; i<results.size();i++) {
@@ -900,7 +901,7 @@ public class Main {
     }
 
     public void query8(String category, String year) {
-        System.out.println("Query 8 : \n");
+        System.out.println("Query 8 for category "+category+" and year "+year+": \n");
 
         //get total sales amount for each product
         HashMap<String, Integer> nbSaleProduct = new HashMap<>();
@@ -922,6 +923,95 @@ public class Main {
         }
 
         System.out.println("\nEND query 8");
+        System.out.println("--------------------\n\n");
+    }
+
+    public void query10() {
+        System.out.println("Query 10 : \n");
+
+        //Get the top-10 most active persons during the last year
+
+        //post_hasCreator_person_
+        List<Post> AllPosts = getAllPosts();
+        List<Post> lastYearPosts = new ArrayList<>();
+        for(Post post : AllPosts) {
+             if(post.creationDate != null && post.creationDate.substring(0, 4).equals("2011")) {
+                lastYearPosts.add(post);
+            }
+        }
+
+        HashMap<String, Integer> nbPostByUser = new HashMap<>();
+        for(Post post : lastYearPosts) {
+            List<String> res = jedis.hmget("post_hasCreator_person_"+post.id, "Post.id", "Person.id");
+            String personId = res.get(1);
+            if(nbPostByUser.containsKey(personId)) nbPostByUser.put(personId, nbPostByUser.get(personId) + 1);
+            else nbPostByUser.put(personId, 1);
+        }
+
+        String top10[] = new String[10];
+        int index = 0;
+        for(int i=0; i<10; i++) {
+            int firstValue = 0;
+            String first = "";
+            for(Map.Entry<String, Integer> entry : nbPostByUser.entrySet()) {
+                if(entry.getValue() > firstValue) first = entry.getKey();
+            }
+            top10[index] = first;
+            index++;
+            nbPostByUser.remove(first);
+        }
+
+        System.out.println("Top 10 most active person :");
+        for(int i=0;i <top10.length; i++) {
+            List<String> res = jedis.hmget("customer_"+top10[i], "firstName", "lastName");
+            int pos = i+1;
+            System.out.println("- "+ pos+ ": " + res.get(0) + " " + res.get(1));
+        }
+        System.out.println("");
+
+        //recent reviews
+        ArrayList<String> recentFeedbacks = new ArrayList<>();
+        ScanParams scanParams = new ScanParams().match("*").count(100000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        for(String r : results) {
+            for(String top : top10) {
+                if(r.contains("feedback_")) {
+                    List<String> res = jedis.hmget(r, "feedback");
+                    if(res.get(0) != null && !recentFeedbacks.contains(res.get(0))) {
+                        if(recentFeedbacks.size() <10) recentFeedbacks.add(res.get(0));
+                        else break;
+                    }
+                }
+            }
+        }
+
+        System.out.println("Recent feedbacks :");
+        for(String f : recentFeedbacks) {
+            System.out.println(f);
+        }
+        System.out.println("");
+
+
+        //recent tags
+        ArrayList<String> recentTags = new ArrayList<>();
+        for(String r : results) {
+            for(String top : top10) {
+                if(r.contains("post_hasTag_tag_")) {
+                    List<String> res = jedis.hmget(r, "Tag.id");
+                    if(res.get(0) != null && !recentTags.contains(res.get(0))) {
+                        if(recentTags.size() <10) recentTags.add(res.get(0));
+                        else break;
+                    }
+                }
+            }
+        }
+
+        System.out.println("Recent tags :");
+        for(String t : recentTags) {
+            System.out.println(t);
+        }
+
+        System.out.println("\nEND query 10");
         System.out.println("--------------------\n\n");
     }
 

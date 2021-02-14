@@ -1,0 +1,138 @@
+===============================
+Dans redis CLI :
+===============================
+
+
+=================Supression/Ajout/Modification dans la base=================
+
+-------Customer-------
+Supression 
+DEL key customer_2199023265737
+
+Ajout
+HGET customer_21990232657378 lastName
+HMSET customer_21990232657378 id "21990232657378" firstName "john" lastName "smith" gender "MALE" birthday "1981-03-21" creationDate "2010-03-13T02:10:23.099+0000" locationIP "41.138.53.138" browserUsed "Internet Explorer" place "1263"
+
+Modification
+HGETALL customer_4145
+HSET customer_4145 lastName "Maazoute"
+
+-------Feedback-------
+Supression 
+DEL key feedback_B001C74GM8_21990232558847
+
+Ajout
+HMSET feedback_B001C74GM8_21990232558847 asin "B001C74GM8" id "21990232558847" feedback "'5.0,For the price, you cannot touch this scope. It is fun to use and definately offers an advantage when shooting at night.'"
+HGETALL feedback_B001C74GM8_21990232558847
+
+Modification
+HGETALL feedback_B001C74GM8_21990232558847 
+HSET feedback_B001C74GM8_21990232558847 feedback "'5.0,For the price, you cannot touch this scope. It is fun to use and definately offers an advantage when shooting at night. UPDATED'"
+
+-------Invoice-------
+Supression 
+DEL key invoice_90dfb25b-6cec-412c-8984-f7f60110e105
+
+Ajout
+HGETALL invoice_90dfb25b-6cec-412c-8984-f7f60110e105
+HMSET invoice_90dfb25b-6cec-412c-8984-f7f60110e105 orderId "90dfb25b-6cec-412c-8984-f7f60110e105" personId "4398046512678" orderDate "2019-05-19" totalPrice "1770.81" products "[{6485,B000HIE4WC,Topeak Dual Touch Bike Storage Stand, 51, Derbi},[8512,B000HJE4WC,Sportlock Leatherlock, 120, Chanel}]"
+
+Modification
+HGETALL invoice_90dfb25b-6cec-412c-8984-f7f60110e105
+HSET invoice_90dfb25b-6cec-412c-8984-f7f60110e105 totalPrice "125"
+
+-------Order-------
+Supression 
+DEL key order_016f6a4a-ec18-4885-b1c7-9bf2306c76d8
+
+Ajout
+HGETALL order_016f6a4a-ec18-4885-b1c7-9bf2306c76d8
+HMSET order_016f6a4a-ec18-4885-b1c7-9bf2306c76d8 orderId "016f6a4a-ec18-4885-b1c7-9bf2306c76d8" personId "10995136278715" orderDate "2018-09-22" totalPrice "133.5" orderLine "La liste des produits"
+
+Modification
+HGETALL order_016f6a4a-ec18-4885-b1c7-9bf2306c76d8
+HSET order_016f6a4a-ec18-4885-b1c7-9bf2306c76d8 totalPrice "15000000"
+
+-------Person_hasInterest_tag_-------
+Supression 
+DEL key person_hasInterest_tag_2526
+
+Ajout
+HGETALL person_hasInterest_tag_2526
+HMSET person_hasInterest_tag_2526 Person.id "2526" Tag.id "1589"
+
+Modification
+HGETALL person_hasInterest_tag_2526
+HSET person_hasInterest_tag_2526 Person.id "2527"
+
+-------person hasTag tag-------
+Supression 
+DEL key person_hasTag_tag_1786706395123
+
+Ajout
+HGETALL person_hasTag_tag_1786706395123
+HMSET 1786706395123 Post.id "1786706395123" Tag.id "3441"
+
+Modification
+HGETALL person_hasTag_tag_1786706395123
+HSET person_hasTag_tag_1786706395123 Post.id "1786706395124"
+
+-------person knows person-------
+Supression 
+DEL key person_knows_person_2528_5412
+
+Ajout
+HGETALL person_knows_person_2528_5412
+HMSET person_knows_person_2528_5412 person1Id "2528" person2Id "5412" creationDate "2010-06-23T06:12:02.793+0000"
+
+Modification
+HGETALL person_knows_person_2528_5412 
+HSET person_knows_person_2528_5412 creationDate "2010-06-23T06:12:02.793+0000"
+
+-------Post-------
+Supression 
+DEL key post_1236950581248
+
+Ajout
+HGETALL post_1236950581248
+HMSET post_1236950581248 id "1236950581248" imageFile "" creationDate "2011-09-15T00:45:16.684+0000" locationIP "192.101.113.232" browserUsed "Internet Explorer" language "uz" content "bout Armasight Spark CORE Multi-Purpose Night Vision Monocular, # 62 on October 8, 2007, and his career-high doub" length "95"
+
+Modification
+HGETALL post_1236950581248
+HSET post_1236950581248 creationDate "2010-06-23T06:10:02.793+0000"
+
+-------Post hasCreator person-------
+Supression 
+DEL key post_hasCreator_person_1236950581488
+
+Ajout
+HGETALL post_hasCreator_person_1236950581488 
+HMSET post_hasCreator_person_1236950581488 Post.id "1236950581488" Person.id "5413"
+
+Modification
+HGETALL post_hasCreator_person_1236950581488
+HSET post_hasCreator_person_1236950581488 Person.id "5414"
+
+-------Product-------
+Supression 
+DEL key product_B000003NUS
+
+Ajout
+HGETALL product_B000003NUS
+HMSET product_B000003NUS asin "B000003NUS" title "Black Mountain Products Single Band" price "81.02" imgUrl "http://ecx.images-amazon.com/images/I/41g2Pz8o8KL._SX342_.jpg" brand "chanel"
+
+Modification
+HGETALL product_B000003NUS
+HSET product_B000003NUS price "15000000"
+
+-------Vendor-------
+Supression 
+DEL key vendor_Nomas
+
+Ajout
+HGETALL vendor_Nomas
+HMSET vendor_Nomas Vendor "Nomas" Country "South_Korea" Industry "Sports"
+
+Modification
+HGETALL vendor_Nomas
+HSET vendor_Nomas Country "France"

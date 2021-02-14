@@ -22,21 +22,22 @@ public class Main {
         System.out.println("Connexion réussi !");
 
         //Reset Database
-        m.jedis.flushAll();
+        //m.jedis.flushAll();
 
         //Import des fichiers dans la database
-        m.importAll();
+        //m.importAll();
 
         //Queries
-        m.query1("19791209300458");
-        m.query1("4145");
-        m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
-        m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
-        m.query4();
-        m.query6("4398046516033", "4398046516051");
+
+        //m.query1("8796093025356");
+        //m.query1("10995116280191");
+        //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
+        //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
+        //m.query4();
+        //m.query6("4398046516033", "4398046516051");
 
         // Ajouts, modifications et supressions
-        m.addMutDel();
+        //m.addMutDel();
 
     }
 
@@ -297,7 +298,7 @@ public class Main {
         List<String> results = jedis.scan("0", scanParams).getResult();
         List<Invoice> invoices = new ArrayList<>();
         for(int i=0; i<results.size();i++) {
-            if(results.get(i).contains("invoice")) {
+            if(results.get(i).contains("invoice_")) {
                 List<String> res = jedis.hmget(results.get(i), "orderId", "personId", "orderDate", "totalPrice", "products");
                 List<String> products = Arrays.asList(res.get(4).split("~é"));
                 List<Product> produits = new ArrayList<>();
@@ -578,7 +579,7 @@ public class Main {
         //find feedback
         ScanParams scanParams = new ScanParams().match("*").count(100000);
         List<String> results = jedis.scan("0", scanParams).getResult();
-        List<String> postsIds = new ArrayList<>();
+
 
         System.out.println("Feedbacks :");
         for(int i=0; i<results.size();i++) {
@@ -592,6 +593,7 @@ public class Main {
 
 
         //find posts
+        List<String> postsIds = new ArrayList<>();
         for(int i=0; i<results.size();i++) {
             if(results.get(i).contains("post_hasCreator_person_")) {
                 List<String> res = jedis.hmget(results.get(i), "Post.id", "Person.id");
@@ -712,29 +714,27 @@ public class Main {
     public void query4() throws IOException {
         System.out.println("Query 4:");
 
-    	// Trouver les 2 personnes qui ont d�pens� le plus
+    	// Trouver les 2 personnes qui ont dépensé le plus
     	
     	ArrayList<String> id = new ArrayList<>();
     	HashMap<String, Float> hmPerson = new HashMap<String, Float>();
-    	
 
         ScanParams scanParams = new ScanParams().match("*").count(800000);
         List<String> results = jedis.scan("0", scanParams).getResult();      
         
         for(String orderId : results) {
-        	
         	if(orderId.contains("order_")) {
         		List<String> info = jedis.hmget(orderId, "PersonId","TotalPrice");
-            	if(hmPerson.get(info.get(0))==null) {
+            	if(hmPerson.get(info.get(0)) == null) {
             		hmPerson.put(info.get(0), Float.parseFloat(info.get(1)));
             	}
             	else {
-            		float prix =  Float.parseFloat(info.get(1)) + hmPerson.get(info.get(0));
+            		float prix = Float.parseFloat(info.get(1)) + hmPerson.get(info.get(0));
             		hmPerson.put(info.get(0), prix);
             	}
         	}
         }
-        
+
         ArrayList<Float> prices = new ArrayList<Float>();
         for(Float f : hmPerson.values()) {
         	prices.add(f);
@@ -799,7 +799,7 @@ public class Main {
     //TODO: To continue
     public void query6(String idCustomer1, String idCustomer2) {
         System.out.println("Query 6:");
-        ScanParams scanParams = new ScanParams().match("*").count(100000);
+        ScanParams scanParams = new ScanParams().match("*").count(1000000);
         List<String> results = jedis.scan("0", scanParams).getResult();
 
         List<String> friends1 = new ArrayList<>();

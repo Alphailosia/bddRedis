@@ -28,6 +28,7 @@ public class Main {
         //m.importAll();
 
         //Queries
+        m.query9();
 
         //m.query1("8796093025356");
         //m.query1("10995116280191");
@@ -44,10 +45,10 @@ public class Main {
     public void importAll() throws IOException {
 
         System.out.println("Importations ...");
-
+        
         // initialisation de la list de HashMap a mettre dans la bdd via un fichier Json
         ArrayList<HashMap<String,String>> list = new ArrayList<HashMap<String,String>>();
-
+        
         // ajout des invoices
         importInvoiceXML();
         System.out.println("Invoices ajoutés");
@@ -102,7 +103,7 @@ public class Main {
 			jedis.hmset("feedback_"+list.get(i).get("asin")+"_"+list.get(i).get("id"),list.get(i) );
 		}
      	System.out.println("Feedback ajoutés");
-
+     	
 
      	// ajout des vendor
         list = readCsv(lien + "vendor/Vendor.csv",",");
@@ -111,7 +112,7 @@ public class Main {
         }
         System.out.println("Vendors ajoutés");
 
-
+        
         // ajout des person_hasInterest_tag
         list = readCsv(lien + "socialNetwork/person_hasInterest_tag_0_0.csv","\\|");
         for(int i=0;i<list.size();i++) {
@@ -151,7 +152,7 @@ public class Main {
         }
         System.out.println("post_hasTag_tag ajoutés");
 
-
+        
         // ajout des commandes
         list = readJson(lien+"order/Order.json");
         for(int i=0;i<list.size();i++) {
@@ -493,24 +494,9 @@ public class Main {
                 // traitement du tableau de produits
                 
                 String key = tabProduct.substring(1, 10);
-                String[] produits = tabProduct.substring(12).substring(1,tabProduct.substring(12).length()-1).split(",");
-                ArrayList<HashMap<String,String>> products = new ArrayList<>();
-                
-                for(int i=0;i<produits.length;i++) {
-                	
-                	String[] s = produits[i].split(",");
-                	HashMap<String,String> hmp = new HashMap<>();
-                	
-                	for(int j=0;j<s.length;j++) {
-                		String[] jpp = s[j].split(":");
-                		hmp.put(jpp[0].substring(1,jpp[0].length()-1),jpp[1]);
-                	}
-                	
-                	products.add(hmp);
-                	
-                }
-                
-                hmOrder.put(key, products.toString());
+                String produits = tabProduct.substring(12).substring(1,tabProduct.substring(12).length()-1);
+                               
+                hmOrder.put(key, produits);
                 result.add(hmOrder);
             }
             return result;
@@ -708,7 +694,7 @@ public class Main {
         System.out.println("--------------------\n\n");
     }
 
-    public void query4() throws IOException {
+    public void query4() {
         System.out.println("Query 4:");
 
     	// Trouver les 2 personnes qui ont dépensé le plus
@@ -865,4 +851,74 @@ public class Main {
         return (dateTime.compareTo(d1) >= 0 && dateTime.compareTo(d2) <= 0);
     }
 
+    public void query9() {
+    	System.out.println("Query 9:");
+    	// 3 plus grandes marques par pays
+    	
+    	// parcourir les marques et les triés par pays
+    	ScanParams scanParams = new ScanParams().match("*").count(8000000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        
+        HashMap<String, String> hmBC = new HashMap<String, String>();
+        for(String s : results) {
+        	if(s.contains("vendor_")) {
+        		List<String> info = jedis.hmget(s, "Vendor","Country");
+        		hmBC.put(info.get(0),info.get(1));
+        	}
+        }
+        
+        // parcour des order pour voir quel marque a le plus vendus
+        HashMap<String,Integer> hmCountBrand  = new  HashMap<String, Integer>();
+        for(String s : results) {
+        	if(s.contains("order_")) {
+        		
+        		String products = jedis.hgetAll(s).get("Orderline");
+        		
+        		while(products.length()!=0) {
+        			int indexTab = products.indexOf("{");
+                    int finTab = products.indexOf("}");
+                    
+                    String p = products.substring(indexTab+1, finTab);
+                    String[] tab = p.split(",");
+                    String[] tab2 = tab[tab.length-1].split(":");
+                    
+                    if(hmCountBrand.get(tab2[1].substring(1, tab2[1].length()-1))!=null) {
+                    	int count = hmCountBrand.get(tab2[1].substring(1, tab2[1].length()-1))+1;
+                    	hmCountBrand.put(tab2[1].substring(1, tab2[1].length()-1), count);
+                    }
+                    else {
+                    	hmCountBrand.put(tab2[1].substring(1, tab2[1].length()-1), 1);
+                    }
+                    
+                    if(finTab==products.length()-1) {
+                    	products="";
+                    }
+                    else {
+                    	products = products.substring(finTab+2);
+                    }
+        		}
+        	}
+        }
+        
+        
+        // trier en fonction du pays et du 
+        for(String s : hmBC.keySet()) {
+        	String pays = hmBC.get(s);
+        	Integer sales = hmCountBrand.get(s);
+        	
+        }
+    	
+    	// comparer clientèle masculine et féminine
+    	
+    		// parcourir les order et prenre le personId
+    		// trouver dans la bdd le genre de la personne en fontion de ca puis incrémenter le dans la marque
+    		// comprarer s'il y a plus de fille ou de garcon
+    	
+    	// trouver les post les plus récent pour chaque
+    		
+    		// prendre tous les clients de genre le plus present dans la marque et mettre leur post le plus récent
+        
+        System.out.println("Fin query 9");
+    	
+    }
 }

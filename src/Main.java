@@ -34,7 +34,7 @@ public class Main {
         //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
         //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
         //m.query4();
-        //m.query6("4398046516033", "4398046516051");
+        //m.query6("4398046519185", "4398046519477");
 
         // Ajouts, modifications et supressions
         //m.addMutDel();
@@ -294,7 +294,7 @@ public class Main {
     }
 
     public List<Invoice> getAllInvoices() {
-        ScanParams scanParams = new ScanParams().match("*").count(100000);
+        ScanParams scanParams = new ScanParams().match("*").count(300000);
         List<String> results = jedis.scan("0", scanParams).getResult();
         List<Invoice> invoices = new ArrayList<>();
         for(int i=0; i<results.size();i++) {
@@ -539,7 +539,7 @@ public class Main {
     }
 
     public List<Post> getAllPosts() {
-        ScanParams scanParams = new ScanParams().match("*").count(1000000);
+        ScanParams scanParams = new ScanParams().match("*").count(2000000);
         List<String> results = jedis.scan("0", scanParams).getResult();
         List<Post> posts = new ArrayList<>();
         for(int i=0; i<results.size();i++) {
@@ -554,7 +554,7 @@ public class Main {
 
     public void query1(String idCustomer) {
 
-        System.out.println("Query 1 (ID Customer: "+idCustomer+"):");
+        System.out.println("Query 1 (ID Customer: "+idCustomer+"):\n");
 
         //find profile
         List<String> cust = jedis.hmget("customer_" + idCustomer,
@@ -568,23 +568,21 @@ public class Main {
         //find orders/invoices
         System.out.println("Invoices/orders (in the last month):");
         List<Invoice> allInvoices = getAllInvoices();
-        for(int i=0 ; i<allInvoices.size(); i++) {
-            if(allInvoices.get(i).personId.equals(customer.id) && lastMonth(allInvoices.get(i).orderDate) ) {
-                System.out.println(allInvoices.get(i));
+        for(Invoice invoice : allInvoices) {
+            if(invoice.personId.equals(customer.id) && lastMonth(invoice.orderDate)) {
+                System.out.println(invoice);
             }
         }
         System.out.println("");
 
 
         //find feedback
-        ScanParams scanParams = new ScanParams().match("*").count(100000);
+        ScanParams scanParams = new ScanParams().match("*").count(1000000);
         List<String> results = jedis.scan("0", scanParams).getResult();
-
-
         System.out.println("Feedbacks :");
-        for(int i=0; i<results.size();i++) {
-            if(results.get(i).contains("feedback_")) {
-                List<String> res = jedis.hmget(results.get(i), "asin", "id", "feedback");
+        for(String r : results) {
+            if(r.contains("feedback_")) {
+                List<String> res = jedis.hmget(r, "asin", "id", "feedback");
                 Feedback f = new Feedback(res.get(0), res.get(1), res.get(2));
                 if(f.id.equals(customer.id)) System.out.println(f);
             }
@@ -594,15 +592,15 @@ public class Main {
 
         //find posts
         List<String> postsIds = new ArrayList<>();
-        for(int i=0; i<results.size();i++) {
-            if(results.get(i).contains("post_hasCreator_person_")) {
-                List<String> res = jedis.hmget(results.get(i), "Post.id", "Person.id");
+        for(String r : results) {
+            if(r.contains("post_hasCreator_person_")) {
+                List<String> res = jedis.hmget(r, "Post.id", "Person.id");
                 if(res.get(1).equals(customer.id)) postsIds.add(res.get(0));
             }
         }
         System.out.println("Posts (in the last month):");
-        for(int i=0; i<postsIds.size();i++) {
-            List<String> res = jedis.hmget("post_"+postsIds.get(i), "id", "imageFile", "creationDate", "locationIP", "browserUsed", "language", "content", "length");
+        for(String postId : postsIds) {
+            List<String> res = jedis.hmget("post_"+postId, "id", "imageFile", "creationDate", "locationIP", "browserUsed", "language", "content", "length");
             Post p = new Post(res.get(0), res.get(1), res.get(2), res.get(3), res.get(4), res.get(5), res.get(6), res.get(7));
             if(lastMonth(p.creationDate)) {
                 System.out.println(p);
@@ -654,7 +652,6 @@ public class Main {
         }
         System.out.println("The tag which he has engaged the greatest times in the posts: "+highestTag + " (" + highestTagNumber + ").");
 
-
         System.out.println("\nEND query 1");
         System.out.println("--------------------\n\n");
     }
@@ -689,9 +686,9 @@ public class Main {
         List<String> results = jedis.scan("0", scanParams).getResult();
 
         System.out.println("Comments with bad sentiments of the product ("+idProduct+") :");
-        for(int i=0; i<results.size();i++) {
-            if(results.get(i).contains("feedback_"+idProduct)) {
-                List<String> res = jedis.hmget(results.get(i), "asin", "id", "feedback");
+        for(String r : results) {
+            if(r.contains("feedback_"+idProduct)) {
+                List<String> res = jedis.hmget(r, "asin", "id", "feedback");
                 Feedback f = new Feedback(res.get(0), res.get(1), res.get(2));
                 int note;
                 if(f.feedback.substring(1, 2).equals("'")) {
@@ -796,16 +793,15 @@ public class Main {
 
     }
 
-    //TODO: To continue
     public void query6(String idCustomer1, String idCustomer2) {
-        System.out.println("Query 6:");
-        ScanParams scanParams = new ScanParams().match("*").count(1000000);
+        System.out.println("Query 6 for customers ("+idCustomer1+", "+idCustomer2+"): \n");
+        ScanParams scanParams = new ScanParams().match("*").count(2000000);
         List<String> results = jedis.scan("0", scanParams).getResult();
 
+        //Get all friends of customer1 and customer2
         List<String> friends1 = new ArrayList<>();
         List<String> friends2 = new ArrayList<>();
         for(int i=0; i<results.size();i++) {
-
             if(results.get(i).contains("person_knows_person_"+idCustomer1)) {
                 List<String> res = jedis.hmget(results.get(i), "Person.id", "Person2.id");
                 if(res.get(1) != null) friends1.add(res.get(1));
@@ -815,16 +811,40 @@ public class Main {
             }
         }
 
-
-        System.out.println(friends1);
-        System.out.println(friends2);
-
+        //get communs friends
         List<String> communs = new ArrayList<>();
         for(String f : friends1) {
             if(friends2.contains(f)) communs.add(f);
         }
-        System.out.println("communs: ");
-        System.out.println(communs);
+
+        //get number of products of brands from communs friends invoices
+        HashMap<String, Integer> brandsNumber = new HashMap<>();
+        List<Invoice> invoices = getAllInvoices();
+        for(Invoice invoice : invoices) {
+            if(communs.contains(invoice.personId)) {
+                for (Product p : invoice.products) {
+                    if(brandsNumber.containsKey(p.brand)) brandsNumber.put(p.brand, brandsNumber.get(p.brand) + 1);
+                    else brandsNumber.put(p.brand, 1);
+                }
+            }
+        }
+
+        //Get the top 3 best seller brands
+        ArrayList<String> top3 = new ArrayList<>();
+        for(int i=0; i<3; i++) {
+            int firstValue = 0;
+            String first = "";
+            for(Map.Entry<String, Integer> entry : brandsNumber.entrySet()) {
+                if(entry.getValue() > firstValue) first = entry.getKey();
+            }
+            brandsNumber.remove(first);
+            top3.add(first);
+        }
+
+
+        System.out.println("TOP 3 best sellers from all these persons purchases:");
+        for(String top : top3) System.out.println("- "+top);
+
 
         System.out.println("\nEND query 6");
         System.out.println("--------------------\n\n");

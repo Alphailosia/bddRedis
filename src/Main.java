@@ -243,6 +243,17 @@ public class Main {
 
         ///Suppression d'un invoice
         i.deleteInvoice(jedis, "6711da51-dee6-452a-a7b7-f79a1cbb9437");
+
+        ///Ajout d'un person_hasTag_tag
+        Person_hasTag_tag pt = new Person_hasTag_tag();
+        pt.ajoutPerson_hasTag_tag(jedis, "1786706395123", "3441");
+
+        ///Modification d'un person_hasTag_tag
+        pt.updatePerson_hasTag_tag(jedis, "1786706395123", "Tag.id", "3442");
+
+        ///Suppression d'un person_hasTag_tag
+        pt.deletePerson_hasTag_tag(jedis, "1786706395123");
+
     }
 
     public void importInvoiceXML() {

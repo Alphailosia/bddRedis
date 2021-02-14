@@ -34,6 +34,7 @@ public class Main {
         //m.query2("B000KKEPJ2", LocalDate.of(2020, 10, 1), LocalDate.of(2022, 1, 1));
         //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
         //m.query4();
+        //m.query5("10995116283190", "Pirma");
         //m.query6("4398046519185", "4398046519477");
         //m.query7("Penalty_(sports_manufacturer)");
         //m.query8("Signia_(sportswear)", "2020");
@@ -838,7 +839,30 @@ public class Main {
         System.out.println("--------------------\n\n");
     }
 
-    public void query5() {
+    public void query5(String idCustomer, String category) {
+        System.out.println("Query 5 (ID idCustomer: "+idCustomer+", category: "+category+"):\n");
+
+        List<Product> products = new ArrayList<>();
+        List<Invoice> invoices = getAllInvoices();
+        for(Invoice invoice : invoices) {
+            if (invoice.personId.equals(idCustomer)) {
+                for(Product product : invoice.products) {
+                    if(product.brand.equals(category)) products.add(product);
+                }
+            }
+        }
+
+        ScanParams scanParams = new ScanParams().match("*").count(1000000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        System.out.println("5 stars feedback for the products bought by "+idCustomer+" of category "+category+" :");
+        for(String r : results) {
+            for(Product product : products) {
+                if(r.contains("feedback_"+product.asin)) {
+                    List<String> res = jedis.hmget(r, "feedback");
+                    if(res.get(0).charAt(1) == '5') System.out.println("- (5/5) " + res.get(0).substring(5, res.get(0).length() - 1));
+                }
+            }
+        }
 
     }
 

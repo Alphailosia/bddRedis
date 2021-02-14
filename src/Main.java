@@ -36,6 +36,7 @@ public class Main {
         //m.query3("B001C74GM8", LocalDate.of(2012, 10, 1), LocalDate.of(2016, 1, 1));
         //m.query4();
         //m.query6("4398046519185", "4398046519477");
+        //m.query7("Penalty_(sports_manufacturer)");
 
         // Ajouts, modifications et supressions
         //m.addMutDel();
@@ -833,6 +834,53 @@ public class Main {
 
 
         System.out.println("\nEND query 6");
+        System.out.println("--------------------\n\n");
+    }
+
+    public void query7(String vendor) {
+        System.out.println("Query 7 for vendor "+vendor+": \n");
+
+        //get all product of the vendor
+        List<Product> products = new ArrayList<>();
+        ScanParams scanParams = new ScanParams().match("*").count(2000000);
+        List<String> results = jedis.scan("0", scanParams).getResult();
+        for(String r : results) {
+            if(r.contains("product_")) {
+                List<String> res = jedis.hmget(r, "asin", "price", "title", "imgUrl", "brand");
+                Product p = new Product(res.get(0), res.get(1), res.get(2), res.get(3), res.get(4));
+                if(p.brand != null && p.brand.equals(vendor)) products.add(p);
+            }
+        }
+
+
+        //get the number of bad reviews for each products
+        HashMap<String, Integer> badReviews = new HashMap<>();
+        for(String r : results) {
+            for(Product p : products) {
+                if(r.contains("feedback_"+p.asin)) {
+                    List<String> res = jedis.hmget(r, "asin", "id", "feedback");
+                    Feedback f = new Feedback(res.get(0), res.get(1), res.get(2));
+
+                    if(f.feedback != null) {
+                        int note;
+                        if(f.feedback.substring(1, 2).equals("'")) note = Integer.parseInt(f.feedback.substring(2, 3));
+                        else note = Integer.parseInt(f.feedback.substring(1, 2));
+
+                        if(note < 3) {
+                            if(badReviews.containsKey(p.asin)) badReviews.put(p.asin, badReviews.get(p.asin) + 1);
+                            else badReviews.put(p.asin, 1);
+                        }
+                    }
+                }
+            }
+        }
+
+        System.out.println("Products from "+vendor+" with bad reviews:");
+        for(Map.Entry<String, Integer> entry : badReviews.entrySet()) {
+            System.out.println("- " + entry.getKey() + ": " + entry.getValue() + " bad reviews");
+        }
+
+        System.out.println("\nEND query 7");
         System.out.println("--------------------\n\n");
     }
 
